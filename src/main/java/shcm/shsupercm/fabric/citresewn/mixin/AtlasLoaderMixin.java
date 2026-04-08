@@ -1,8 +1,8 @@
 package shcm.shsupercm.fabric.citresewn.mixin;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.client.texture.atlas.AtlasLoader;
 import net.minecraft.client.texture.atlas.AtlasSource;
-import net.minecraft.client.texture.atlas.AtlasSourceType;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceFinder;
 import net.minecraft.resource.ResourceManager;
@@ -36,8 +36,8 @@ public class AtlasLoaderMixin {
                 }
 
                 @Override
-                public AtlasSourceType getType() {
-                    return null;
+                public MapCodec<? extends AtlasSource> getCodec() {
+                    return MapCodec.unit(this);
                 }
             });
         }

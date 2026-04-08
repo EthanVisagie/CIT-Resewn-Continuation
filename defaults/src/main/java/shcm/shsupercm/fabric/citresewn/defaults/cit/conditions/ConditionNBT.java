@@ -1,9 +1,12 @@
 package shcm.shsupercm.fabric.citresewn.defaults.cit.conditions;
 
+import com.google.gson.JsonParser;
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import com.mojang.brigadier.StringReader;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.nbt.*;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import shcm.shsupercm.fabric.citresewn.api.CITConditionContainer;
 import shcm.shsupercm.fabric.citresewn.cit.CITCondition;
 import shcm.shsupercm.fabric.citresewn.cit.CITContext;
@@ -86,7 +89,7 @@ public class ConditionNBT extends CITCondition {
             matchShort = NbtShort.of(Short.parseShort(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchElement = new StringNbtReader(new StringReader(nbtValue)).parseElement();
+            matchElement = StringNbtReader.fromOps(NbtOps.INSTANCE).read(nbtValue);
         } catch (Exception ignored) { }
     }
 
@@ -136,7 +139,7 @@ public class ConditionNBT extends CITCondition {
     public boolean testValue(NbtElement element, CITContext context) {
         try {
             if (element instanceof NbtString nbtString)
-                return testString(nbtString.asString(), null, context);
+                return testString(nbtString.value(), null, context);
             else if (element instanceof NbtInt nbtInt && matchInteger != null)
                 return nbtInt.equals(matchInteger);
             else if (element instanceof NbtByte nbtByte && matchByte != null)
@@ -163,9 +166,11 @@ public class ConditionNBT extends CITCondition {
             if (matchString.matches(element))
                 return true;
 
-            if (elementText == null)
-                elementText = Text./*? >=1.20.4 {*/Serialization/*?} else {*//*Serializer*//*?}*/
-                        .fromJson(element/*? >=1.21 {*/, context.world.getRegistryManager()/*?}*/);
+            if (elementText == null) {
+                try {
+                    elementText = TextCodecs.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(element)).result().orElse(null);
+                } catch (Exception ignored) { }
+            }
         }
 
         if (elementText == null)

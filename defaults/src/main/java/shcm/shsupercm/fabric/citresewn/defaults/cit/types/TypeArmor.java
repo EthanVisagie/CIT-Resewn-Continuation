@@ -1,9 +1,11 @@
 package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
+import net.minecraft.client.render.entity.equipment.EquipmentModel;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -36,7 +38,7 @@ public class TypeArmor extends CITType {
         for (CITCondition condition : conditions)
             if (condition instanceof ConditionItems conditionItems)
                 for (Item item : conditionItems.items)
-                    if (item instanceof ArmorItem)
+                    if (isArmorItem(item))
                         itemsConditionPresent = true;
                     else
                         throw new CITParsingException("This type only accepts armor items for the items condition", properties, -1);
@@ -47,7 +49,7 @@ public class TypeArmor extends CITType {
                 if (!Registries.ITEM.containsId(propertiesName))
                     throw new Exception();
                 Item item = Registries.ITEM.get(propertiesName);
-                if (!(item instanceof ArmorItem))
+                if (!isArmorItem(item))
                     throw new Exception();
                 conditions.add(new ConditionItems(item));
             } catch (Exception ignored) {
@@ -73,7 +75,7 @@ public class TypeArmor extends CITType {
         public final List<BiFunction<LivingEntity, EquipmentSlot, ItemStack>> getItemInSlotCompatRedirects = new ArrayList<>();
 
         public Set<CIT<TypeArmor>> loaded = new HashSet<>();
-        public Map<ArmorItem, Set<CIT<TypeArmor>>> loadedTyped = new IdentityHashMap<>();
+        public Map<Item, Set<CIT<TypeArmor>>> loadedTyped = new IdentityHashMap<>();
 
         @Override
         public void load(List<CIT<TypeArmor>> parsedCITs) {
@@ -82,8 +84,8 @@ public class TypeArmor extends CITType {
                 for (CITCondition condition : cit.conditions)
                     if (condition instanceof ConditionItems items)
                         for (Item item : items.items)
-                            if (item instanceof ArmorItem armorItem)
-                                loadedTyped.computeIfAbsent(armorItem, i -> new LinkedHashSet<>()).add(cit);
+                            if (isArmorItem(item))
+                                loadedTyped.computeIfAbsent(item, i -> new LinkedHashSet<>()).add(cit);
         }
 
         @Override
@@ -97,7 +99,7 @@ public class TypeArmor extends CITType {
         }
 
         public CIT<TypeArmor> getRealTimeCIT(CITContext context) {
-            if (!(context.stack.getItem() instanceof ArmorItem))
+            if (!isArmorItem(context.stack.getItem()))
                 return null;
 
             Set<CIT<TypeArmor>> loadedForItemType = loadedTyped.get(context.stack.getItem());
@@ -122,5 +124,46 @@ public class TypeArmor extends CITType {
 
     public interface CITCacheArmor {
         CITCache.Single<TypeArmor> citresewn$getCacheTypeArmor();
+    }
+
+    public Identifier getTexture(EquipmentModel.LayerType layerType, EquipmentModel.Layer layer, Identifier originalTexture) {
+        String basePath = layer.textureId().getPath();
+        String currentPath = originalTexture.getPath();
+        String currentKey = currentPath.startsWith("textures/entity/equipment/") && currentPath.endsWith(".png")
+                ? currentPath.substring("textures/entity/equipment/".length(), currentPath.length() - ".png".length())
+                : currentPath;
+        int layerIndex = layerType == EquipmentModel.LayerType.HUMANOID_LEGGINGS ? 2 : 1;
+
+        Identifier replacement = this.textures.get(currentKey);
+        if (replacement != null)
+            return replacement;
+
+        replacement = this.textures.get(basePath);
+        if (replacement != null)
+            return replacement;
+
+        String legacyKey;
+        if (basePath.endsWith("_overlay"))
+            legacyKey = basePath.substring(0, basePath.length() - "_overlay".length()) + "_layer_" + layerIndex + "_overlay";
+        else
+            legacyKey = basePath + "_layer_" + layerIndex;
+
+        replacement = this.textures.get(legacyKey);
+        if (replacement != null)
+            return replacement;
+
+        return this.textures.get(null);
+    }
+
+    private static boolean isArmorItem(Item item) {
+        ItemStack stack = item.getDefaultStack();
+        EquippableComponent equippable = stack.get(DataComponentTypes.EQUIPPABLE);
+        if (equippable == null || equippable.assetId().isEmpty() || stack.get(DataComponentTypes.GLIDER) != null)
+            return false;
+
+        return switch (equippable.slot()) {
+            case HEAD, CHEST, LEGS, FEET -> true;
+            default -> false;
+        };
     }
 }

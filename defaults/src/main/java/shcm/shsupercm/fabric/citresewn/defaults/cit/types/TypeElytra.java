@@ -1,9 +1,9 @@
 package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ElytraItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.resource.ResourceManager;
@@ -36,7 +36,7 @@ public class TypeElytra extends CITType {
         for (CITCondition condition : conditions)
             if (condition instanceof ConditionItems items)
                 for (Item item : items.items)
-                    if (!(item instanceof ElytraItem))
+                    if (!isElytraItem(item))
                         warn("Non elytra item type condition", null, properties);
 
         texture = resolveAsset(properties.identifier, properties.getLastWithoutMetadata("citresewn", "texture"), "textures", ".png", resourceManager);
@@ -88,5 +88,9 @@ public class TypeElytra extends CITType {
 
     public interface CITCacheElytra {
         CITCache.Single<TypeElytra> citresewn$getCacheTypeElytra();
+    }
+
+    private static boolean isElytraItem(Item item) {
+        return item.getDefaultStack().get(DataComponentTypes.GLIDER) != null;
     }
 }

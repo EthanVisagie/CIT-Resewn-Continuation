@@ -2,9 +2,11 @@ package shcm.shsupercm.fabric.citresewn.mixin.broken_paths;
 
 import net.minecraft.resource.AbstractFileResourcePack;
 import net.minecraft.resource.ResourcePack;
+import net.minecraft.resource.PackVersion;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.metadata.PackResourceMetadata;
-import net.minecraft.resource.metadata.ResourceMetadataReader;
+import net.minecraft.resource.metadata.ResourceMetadataSerializer;
+import net.minecraft.util.dynamic.Range;
 import net.minecraft.util.InvalidIdentifierException;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,15 +23,18 @@ import shcm.shsupercm.fabric.citresewn.config.BrokenPaths;
 public abstract class AbstractFileResourcePackMixin implements ResourcePack {
 
     @SuppressWarnings({"unchecked"})
-    @Inject(method = "parseMetadata(Lnet/minecraft/resource/metadata/ResourceMetadataReader;)Ljava/lang/Object;", cancellable = true, at = @At("RETURN"))
-    public <T extends PackResourceMetadata> void citresewn$brokenpaths$parseMetadata(ResourceMetadataReader<T> metaReader, CallbackInfoReturnable<T> cir) {
+    @Inject(method = "parseMetadata(Lnet/minecraft/resource/metadata/ResourceMetadataSerializer;)Ljava/lang/Object;", cancellable = true, at = @At("RETURN"))
+    public <T extends PackResourceMetadata> void citresewn$brokenpaths$parseMetadata(ResourceMetadataSerializer<T> metaReader, CallbackInfoReturnable<T> cir) {
         if (cir.getReturnValue() != null) try {
             for (String namespace : getNamespaces(ResourceType.CLIENT_RESOURCES)) {
                 findResources(ResourceType.CLIENT_RESOURCES, namespace, "", (identifier, inputStreamInputSupplier) -> {
                 });
             }
         } catch (InvalidIdentifierException e) {
-            cir.setReturnValue((T) new PackResourceMetadata(cir.getReturnValue()./*? >=1.20.4 {*/description()/*?} else {*//*getDescription()*//*?}*/, Integer.MAX_VALUE - 53/*? >=1.20.4 {*/, cir.getReturnValue().supportedFormats()/*?}*/));
+            cir.setReturnValue((T) new PackResourceMetadata(
+                    cir.getReturnValue()./*? >=1.20.4 {*/description()/*?} else {*//*getDescription()*//*?}*/,
+                    new Range<>(PackVersion.of(Integer.MAX_VALUE - 53))
+            ));
         } catch (Exception ignored) { }
     }
 }

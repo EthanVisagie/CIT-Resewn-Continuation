@@ -3,6 +3,22 @@
   "minVersion": "0.8",
   "package": "shcm.shsupercm.fabric.citresewn.defaults.mixin",
   "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "types.armor.EquipmentRendererMixin",
+    "types.armor.LayerTextureKeyAccessor",
+    "types.armor.ItemStackMixin",
+    "types.enchantment.EquipmentRendererMixin",
+    "types.enchantment.ItemRenderStateLayerMixin",
+    "types.enchantment.ItemRenderStateMixin",
+    "types.enchantment.ItemStackMixin",
+    "types.enchantment.RenderLayerInvoker",
+    "types.elytra.ElytraFeatureRendererMixin",
+    "types.elytra.ItemStackMixin",
+    "types.item.BakedModelManagerMixin",
+    "types.item.ItemAssetsLoaderMixin",
+    "types.item.ItemModelManagerMixin",
+    "types.item.ItemStackMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

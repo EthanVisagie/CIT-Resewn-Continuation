@@ -13,8 +13,8 @@ dependencies {
     minecraft "com.mojang:minecraft:${stonecutter.current.version}"
     mappings "net.fabricmc:yarn:${property('deps.yarn')}:v2"
 
-    modCompileOnly "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
-    modCompileOnly "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
+    modImplementation "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
 
     implementation project(path: stonecutter.node.sibling("").getPath(), configuration: "namedElements")
 
@@ -29,6 +29,9 @@ dependencies {
 }
 
 fletchingTable {
+    enableAnnotationProcessor = false
+    enableEntrypoints = false
+    enableMixins = false
     defaultMixinEnvironment = "auto"
 }
 
@@ -47,8 +50,10 @@ java {
     withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
 
-    archivesBaseName = "${property('mod.jarname')}-defaults"
+base {
+    archivesName = "${property('mod.jarname')}-defaults"
 }
 
 processResources {
@@ -66,23 +71,30 @@ jar {
 if (stonecutter.current.isActive) {
     loom.runConfigs.client.ideConfigGenerated = true
 
-    plugins.apply 'com.modrinth.minotaur'
-
-    modrinth {
-        token = TOKEN_MODRINTH
-        projectId = property('publish.modrinth.defaults.id')
-        uploadFile = remapJar
-        versionNumber = version
-        versionName = "v" + version
-        additionalFiles = [sourcesJar.outputs.getFiles().singleFile]
-        gameVersions = Arrays.asList(property('publish.target-mc').split(","))
+    def publishingRequested = gradle.startParameter.taskNames.any { taskName ->
+        def normalized = taskName.toLowerCase()
+        normalized.contains('publish') || normalized.contains('modrinth') || normalized.contains('curseforge')
     }
 
-    rootProject.tasks.named('publishActive') {
-        Task remapJarTask = tasks.getByName 'remapJar'
-        Task modrinthTask = tasks.getByName 'modrinth'
+    if (publishingRequested) {
+        plugins.apply 'com.modrinth.minotaur'
 
-        dependsOn remapJarTask, modrinthTask
-        modrinthTask.mustRunAfter remapJarTask
+        modrinth {
+            token = TOKEN_MODRINTH
+            projectId = property('publish.modrinth.defaults.id')
+            uploadFile = remapJar
+            versionNumber = version
+            versionName = "v" + version
+            additionalFiles = [sourcesJar.outputs.getFiles().singleFile]
+            gameVersions = Arrays.asList(property('publish.target-mc').split(","))
+        }
+
+        rootProject.tasks.named('publishActive') {
+            Task remapJarTask = tasks.getByName 'remapJar'
+            Task modrinthTask = tasks.getByName 'modrinth'
+
+            dependsOn remapJarTask, modrinthTask
+            modrinthTask.mustRunAfter remapJarTask
+        }
     }
 }

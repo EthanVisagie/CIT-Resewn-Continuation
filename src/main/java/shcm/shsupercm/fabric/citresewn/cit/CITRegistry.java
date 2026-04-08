@@ -49,33 +49,48 @@ public final class CITRegistry { private CITRegistry(){}
      * @see CITConditionContainer
      */
     public static void registerAll() {
+        TYPES.clear();
+        CONDITIONS.clear();
+        TYPE_TO_ID.clear();
+        CONDITION_TO_ID.clear();
+
         info("Registering CIT Conditions");
+        for (CITConditionContainer<?> container : BuiltinEntrypoints.conditionContainers())
+            registerConditionContainer("citresewn", container);
+
         for (var entrypointContainer : FabricLoader.getInstance().getEntrypointContainers(CITConditionContainer.ENTRYPOINT, CITConditionContainer.class)) {
             String namespace = entrypointContainer.getProvider().getMetadata().getId();
             if (namespace.equals("citresewn-defaults"))
                 namespace = "citresewn";
 
-            for (String alias : entrypointContainer.getEntrypoint().aliases) {
-                final PropertyKey key = new PropertyKey(namespace, alias);
-                CITConditionContainer<?> container = entrypointContainer.getEntrypoint();
-
-                CONDITIONS.put(key, container);
-                CONDITION_TO_ID.putIfAbsent(container.createCondition.get().getClass(), key);
-            }
+            registerConditionContainer(namespace, entrypointContainer.getEntrypoint());
         }
 
         info("Registering CIT Types");
+        for (CITTypeContainer<?> container : BuiltinEntrypoints.typeContainers())
+            registerTypeContainer("citresewn", container);
+
         for (var entrypointContainer : FabricLoader.getInstance().getEntrypointContainers(CITTypeContainer.ENTRYPOINT, CITTypeContainer.class)) {
             String namespace = entrypointContainer.getProvider().getMetadata().getId();
             if (namespace.equals("citresewn-defaults"))
                 namespace = "citresewn";
 
-            final Identifier id = Identifier.of(namespace, entrypointContainer.getEntrypoint().id);
-            CITTypeContainer<?> container = entrypointContainer.getEntrypoint();
-
-            TYPES.put(id, container);
-            TYPE_TO_ID.putIfAbsent(container.createType.get().getClass(), id);
+            registerTypeContainer(namespace, entrypointContainer.getEntrypoint());
         }
+    }
+
+    private static void registerConditionContainer(String namespace, CITConditionContainer<?> container) {
+        for (String alias : container.aliases) {
+            PropertyKey key = new PropertyKey(namespace, alias);
+            CONDITIONS.putIfAbsent(key, container);
+            CONDITION_TO_ID.putIfAbsent(container.createCondition.get().getClass(), key);
+        }
+    }
+
+    private static void registerTypeContainer(String namespace, CITTypeContainer<?> container) {
+        Identifier id = Identifier.of(namespace, container.id);
+        TYPES.putIfAbsent(id, container);
+        TYPE_TO_ID.putIfAbsent(container.createType.get().getClass(), id);
     }
 
     /**

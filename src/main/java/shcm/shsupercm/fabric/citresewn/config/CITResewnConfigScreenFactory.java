@@ -56,8 +56,11 @@ public class CITResewnConfigScreenFactory {
 
                     .setYesNoTextSupplier((b) -> {
                         if (b != currentScreen.prevToggle) {
-                            //noinspection unchecked
-                            MinecraftClient.getInstance().setScreen((Screen) FabricLoader.getInstance().getEntrypoints(DEFAULTS_CONFIG_ENTRYPOINT, Function.class).stream().findAny().orElseThrow().apply(create(parent)));
+                            Function<Screen, Screen> defaultsFactory = (Function<Screen, Screen>) FabricLoader.getInstance().getEntrypoints(DEFAULTS_CONFIG_ENTRYPOINT, Function.class).stream().findAny().orElse(null);
+                            if (defaultsFactory == null)
+                                defaultsFactory = getDefaultsFactoryReflectively();
+                            if (defaultsFactory != null)
+                                MinecraftClient.getInstance().setScreen((Screen) defaultsFactory.apply(create(parent)));
 
                             currentScreen.prevToggle = b;
                         }
@@ -106,5 +109,22 @@ public class CITResewnConfigScreenFactory {
                 .build());
 
         return builder.build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Function<Screen, Screen> getDefaultsFactoryReflectively() {
+        try {
+            var method = Class.forName("shcm.shsupercm.fabric.citresewn.defaults.config.CITResewnDefaultsConfigScreenFactory")
+                    .getMethod("create", Screen.class);
+            return parent -> {
+                try {
+                    return (Screen) method.invoke(null, parent);
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
     }
 }

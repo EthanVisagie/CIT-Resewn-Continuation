@@ -1,6 +1,7 @@
 package shcm.shsupercm.fabric.citresewn.mixin.broken_paths;
 
 import net.minecraft.resource.ResourcePackCompatibility;
+import net.minecraft.resource.PackVersion;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,9 +29,9 @@ public abstract class ResourcePackCompatibilityMixin {
             /*? <=1.20.1 {*/
                 /*(int current, net.minecraft.resource.ResourceType type, CallbackInfoReturnable<ResourcePackCompatibility> cir)
             *//*?} else {*/
-                (net.minecraft.util.dynamic.Range<Integer> range, int current, CallbackInfoReturnable<ResourcePackCompatibility> cir)
+                (net.minecraft.util.dynamic.Range<PackVersion> range, PackVersion current, CallbackInfoReturnable<ResourcePackCompatibility> cir)
             /*?}*/ {
-        if (current == Integer.MAX_VALUE - 53)
+        if (range.minInclusive().major() == Integer.MAX_VALUE - 53)
             cir.setReturnValue(BROKEN_PATHS);
     }
 }

@@ -2,21 +2,29 @@
   "schemaVersion": 1,
   "id": "citresewn-defaults",
   "version": "${mod_version}",
-  "name": "CIT Resewn: Defaults",
-  "description": "Default types and conditions for CIT Resewn",
+  "name": "CIT Resewn Continuation: Defaults",
+  "description": "Default types and conditions for the unofficial CIT Resewn continuation",
   "authors": [
     "SHsuperCM"
   ],
   "license": "MIT",
   "icon": "assets/citresewn-defaults/logo.png",
   "contact": {
-    "homepage": "https://citresewn.shcm.io/",
-    "sources": "https://github.com/SHsuperCM/CITResewn",
-    "issues": "https://github.com/SHsuperCM/CITResewn/issues"
+    "homepage": "https://github.com/EthanVisagie/CIT-Resewn-Continuation",
+    "sources": "https://github.com/EthanVisagie/CIT-Resewn-Continuation",
+    "issues": "https://github.com/EthanVisagie/CIT-Resewn-Continuation/issues"
   },
 
   "environment": "client",
   "accessWidener" : "citresewn-defaults.accesswidener",
+  "entrypoints": {
+    "client": [
+      "shcm.shsupercm.fabric.citresewn.defaults.CITResewnDefaults"
+    ],
+    "modmenu": [
+      "shcm.shsupercm.fabric.citresewn.defaults.config.CITResewnDefaultsModMenu"
+    ]
+  },
   "mixins": [
     "citresewn-defaults.mixins.json"
   ],

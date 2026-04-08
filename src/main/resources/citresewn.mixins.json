@@ -4,6 +4,17 @@
   "package": "shcm.shsupercm.fabric.citresewn.mixin",
   "plugin": "shcm.shsupercm.fabric.citresewn.config.CITResewnMixinConfiguration",
   "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "AtlasLoaderMixin",
+    "AtlasPreparationMixin",
+    "ChatScreenMixin",
+    "ModelLoaderMixin",
+    "ResourceFinderMixin",
+    "broken_paths.AbstractFileResourcePackMixin",
+    "broken_paths.IdentifierMixin",
+    "broken_paths.ReloadableResourceManagerImplMixin",
+    "broken_paths.ResourcePackCompatibilityMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
