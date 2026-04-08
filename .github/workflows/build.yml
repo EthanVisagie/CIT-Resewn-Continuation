@@ -34,4 +34,3 @@ jobs:
           path: |
             versions/1.21.11/build/libs/*.jar
             defaults/versions/1.21.11/build/libs/*.jar
-            testing/citresewn-smoke-pack-1.21.11.zip

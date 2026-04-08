@@ -35,9 +35,6 @@ For Minecraft `1.21.11`, use both of these jars:
 - `citresewn-continuation-1.2.2-fork.1+1.21.11.jar`
 - `citresewn-continuation-defaults-1.2.2-fork.1+1.21.11.jar`
 
-The smoke test resource pack is included in the release bundle as:
-- `citresewn-smoke-pack-1.21.11.zip`
-
 ## Installation
 
 1. Install Fabric Loader for Minecraft `1.21.11`.
@@ -66,10 +63,6 @@ Known limits:
 - more real-world pack validation is still needed
 
 ## Testing
-
-The repository includes a smoke-test resource pack here:
-
-- `testing/citresewn-smoke-pack-1.21.11.zip`
 
 For broader validation, test against:
 - `TooManyRenamesV19.9.zip`

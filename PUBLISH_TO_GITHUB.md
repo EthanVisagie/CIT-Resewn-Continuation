@@ -15,7 +15,6 @@ Code and metadata are in this folder:
 Primary release artifacts:
 - `versions/1.21.11/build/libs/citresewn-continuation-1.2.2-fork.1+1.21.11.jar`
 - `defaults/versions/1.21.11/build/libs/citresewn-continuation-defaults-1.2.2-fork.1+1.21.11.jar`
-- `testing/citresewn-smoke-pack-1.21.11.zip`
 - `RELEASE_NOTES_1.2.2-fork.1+1.21.11.md`
 
 Optional bundled archive:
@@ -32,7 +31,6 @@ Optional bundled archive:
 6. Upload these assets to the release:
    - `citresewn-continuation-1.2.2-fork.1+1.21.11.jar`
    - `citresewn-continuation-defaults-1.2.2-fork.1+1.21.11.jar`
-   - `citresewn-smoke-pack-1.21.11.zip`
    - optionally `citresewn-continuation-1.2.2-fork.1+1.21.11-release.zip`
 7. Paste the contents of `RELEASE_NOTES_1.2.2-fork.1+1.21.11.md` into the release description.
 
@@ -49,4 +47,3 @@ Unofficial continuation of CIT Resewn for Minecraft 1.21.11 on Fabric.
 - `resource-packs`
 - `optifine`
 - `cit`
-

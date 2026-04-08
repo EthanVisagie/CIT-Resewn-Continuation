@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/handheld",
-  "textures": {
-    "layer0": "minecraft:optifine/cit/smoke/diamond_sword_green"
-  }
-}

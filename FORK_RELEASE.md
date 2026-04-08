@@ -53,7 +53,6 @@ Before publishing:
    - Fabric Loader `0.16.5`
    - Minecraft `1.21.11`
 4. Test with at least:
-   - the included smoke pack
    - `TooManyRenamesV19.9.zip`
    - one enchantment-heavy pack
 5. Confirm the final jars are:

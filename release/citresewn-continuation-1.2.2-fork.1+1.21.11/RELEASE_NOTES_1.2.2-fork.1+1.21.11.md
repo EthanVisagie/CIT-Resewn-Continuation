@@ -22,18 +22,6 @@ This is the first public release of CIT Resewn Continuation, an unofficial maint
 4. Put your CIT-compatible resource pack in `resourcepacks`.
 5. Enable the pack in-game.
 
-## Included test pack
-
-The release bundle also includes:
-- `citresewn-smoke-pack-1.21.11.zip`
-
-That pack is meant for quick validation of:
-- item model CITs
-- texture-only item CITs
-- armor CITs
-- elytra CITs
-- enchantment CITs
-
 ## Compatibility notes
 
 This fork aims to keep existing CIT Resewn and OptiFine-style CIT packs usable on Fabric 1.21.11.
@@ -49,4 +37,3 @@ If you hit a startup crash, missing texture, or broken model:
 - open an issue at `https://github.com/EthanVisagie/CIT-Resewn-Continuation/issues`
 - include `latest.log` or the crash report
 - include the resource pack name and the renamed item involved
-
