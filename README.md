@@ -20,10 +20,8 @@ Current state:
 - elytra CITs work
 - enchantment CITs have a first 1.21.11 implementation
 
-Remaining risk:
-- more runtime testing is still needed with real resource packs
-- some edge-case OptiFine CIT properties are still not fully ported
-- this release should be treated as a beta
+Testing:
+Tested against TooManyRenamesV19.9 and confirmed working with Fabulously Optimized including Complementary Reimagined shaders.
 
 ## Downloads
 
@@ -59,8 +57,7 @@ Known working areas in this fork:
 - first-pass enchantment glint CITs
 
 Known limits:
-- some edge-case OptiFine CIT properties are still incomplete
-- more real-world pack validation is still needed
+- some edge-case OptiFine CIT properties are still incomplete.
 
 ## Testing
 
