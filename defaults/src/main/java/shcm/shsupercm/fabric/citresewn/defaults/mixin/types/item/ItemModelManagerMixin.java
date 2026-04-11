@@ -34,7 +34,7 @@ public abstract class ItemModelManagerMixin {
     @Inject(method = "update", at = @At("HEAD"), cancellable = true)
     private void citresewn$update(ItemRenderState renderState, ItemStack stack, ItemDisplayContext displayContext, World world, HeldItemContext heldItemContext, int seed, CallbackInfo ci) {
         CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.getEntity());
-        if (TypeEnchantment.CONTAINER.active())
+        if (TypeEnchantment.CONTAINER.active() && TypeEnchantment.hasEnchantments(stack))
             ((TypeEnchantment.CITEnchantmentRenderState) renderState).citresewn$setTypeEnchantments(TypeEnchantment.CONTAINER.getCITs(context));
         else
             ((TypeEnchantment.CITEnchantmentRenderState) renderState).citresewn$setTypeEnchantments(java.util.List.of());

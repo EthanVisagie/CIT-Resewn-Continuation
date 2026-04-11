@@ -3,6 +3,7 @@ package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.client.render.LayeringTransform;
 import net.minecraft.client.render.OutputTarget;
 import net.minecraft.client.render.RenderLayer;
@@ -191,6 +192,10 @@ public class TypeEnchantment extends CITType {
         }
     }
 
+    public static boolean hasEnchantments(ItemStack stack) {
+        return stack != null && EnchantmentHelper.hasEnchantments(stack);
+    }
+
     public static class Container extends CITTypeContainer<TypeEnchantment> implements CITGlobalProperties {
         private final List<CIT<TypeEnchantment>> loaded = new ArrayList<>();
 
@@ -211,6 +216,9 @@ public class TypeEnchantment extends CITType {
         }
 
         public List<CIT<TypeEnchantment>> getCITs(CITContext context) {
+            if (!hasEnchantments(context.stack))
+                return List.of();
+
             List<CIT<TypeEnchantment>> cits = new ArrayList<>();
             for (var reference : ((CITCacheEnchantment) (Object) context.stack).citresewn$getCacheTypeEnchantment().get(context)) {
                 CIT<TypeEnchantment> cit = reference.get();
@@ -222,6 +230,9 @@ public class TypeEnchantment extends CITType {
         }
 
         public List<CIT<TypeEnchantment>> getRealTimeCITs(CITContext context) {
+            if (!hasEnchantments(context.stack))
+                return List.of();
+
             List<CIT<TypeEnchantment>> cits = new ArrayList<>();
             for (CIT<TypeEnchantment> cit : this.loaded)
                 if (cit.test(context))

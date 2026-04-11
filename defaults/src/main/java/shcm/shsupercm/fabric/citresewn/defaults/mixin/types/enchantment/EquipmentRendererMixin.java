@@ -64,13 +64,25 @@ public class EquipmentRendererMixin {
             return;
         }
 
+        if (!TypeEnchantment.hasEnchantments(stack)) {
+            original.call(queue, model, state, matrices, renderLayer, light, overlay, color, sprite, batchingIndex, crumblingOverlay);
+            return;
+        }
+
         List<CIT<TypeEnchantment>> enchantments = CONTAINER.getCITs(new CITContext(stack, null, null));
         if (enchantments.isEmpty()) {
             original.call(queue, model, state, matrices, renderLayer, light, overlay, color, sprite, batchingIndex, crumblingOverlay);
             return;
         }
 
-        if (enchantments.stream().anyMatch(cit -> cit.type.useGlint))
+        boolean keepVanillaGlint = false;
+        for (CIT<TypeEnchantment> enchantment : enchantments)
+            if (enchantment.type.useGlint) {
+                keepVanillaGlint = true;
+                break;
+            }
+
+        if (keepVanillaGlint)
             original.call(queue, model, state, matrices, renderLayer, light, overlay, color, sprite, batchingIndex, crumblingOverlay);
 
         for (CIT<TypeEnchantment> enchantment : enchantments)

@@ -49,7 +49,14 @@ public class ItemRenderStateLayerMixin {
             return;
         }
 
-        boolean keepVanillaGlint = glint != ItemRenderState.Glint.NONE && enchantments.stream().anyMatch(cit -> cit.type.useGlint);
+        boolean keepVanillaGlint = false;
+        if (glint != ItemRenderState.Glint.NONE)
+            for (CIT<TypeEnchantment> enchantment : enchantments)
+                if (enchantment.type.useGlint) {
+                    keepVanillaGlint = true;
+                    break;
+                }
+
         original.call(commandQueue, matrices, displayContext, light, overlay, batchingIndex, tints, quads, renderLayer, keepVanillaGlint ? glint : ItemRenderState.Glint.NONE);
 
         boolean translucent = MinecraftClient.usesImprovedTransparency()
