@@ -25,6 +25,8 @@ public class PropertiesGroupAdapter extends PropertyGroup {
             int linePos = 0, multilineSkip = 0;
             while ((line = reader.readLine()) != null) {
                 linePos++;
+                if (linePos == 1 && !line.isEmpty() && line.charAt(0) == '\uFEFF')
+                    line = line.substring(1);
                 line = line.stripLeading();
                 if (line.isEmpty() || line.startsWith("#") || line.startsWith("!"))
                     continue;
