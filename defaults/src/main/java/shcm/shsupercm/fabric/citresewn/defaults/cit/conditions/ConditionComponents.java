@@ -3,7 +3,9 @@ package shcm.shsupercm.fabric.citresewn.defaults.cit.conditions;
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 /*? >=1.21*/ import net.minecraft.component.ComponentType;
 /*? >=1.21*/ import net.minecraft.component.DataComponentTypes;
+/*? >=1.21*/ import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtFloat;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
@@ -28,6 +30,7 @@ public class ConditionComponents extends CITCondition {
     private String matchValue;
 
     private ConditionNBT fallbackNBTCheck;
+    private boolean legacyCustomModelData;
 
     @Override
     public void load(PropertyKey key, PropertyValue value, PropertyGroup properties) throws CITParsingException {
@@ -40,6 +43,11 @@ public class ConditionComponents extends CITCondition {
             } else if (metadata.startsWith("display.Lore")) {
                 metadata = "minecraft:lore" + value.keyMetadata().substring("display.Lore".length());
                 CITResewn.logWarnLoading(properties.messageWithDescriptorOf("Using legacy nbt.display.Lore", value.position()));
+            } else if (metadata.equals("CustomModelData")) {
+                this.legacyCustomModelData = true;
+                this.matchValue = value.value();
+                loadFallbackNBTCheck(value, properties, new String[0]);
+                return;
             } else
                 throw new CITParsingException("NBT condition is not supported since 1.21", properties, value.position());
         }
@@ -59,17 +67,26 @@ public class ConditionComponents extends CITCondition {
         this.componentMetadata = metadata;
 
         this.matchValue = value.value();
+        loadFallbackNBTCheck(value, properties, metadataNbtPath(metadata));
+    }
 
+    private void loadFallbackNBTCheck(PropertyValue value, PropertyGroup properties, String[] metadataNbtPath) throws CITParsingException {
         this.fallbackNBTCheck = new ConditionNBT();
-        String[] metadataNbtPath = metadata.split("\\.");
         if (metadataNbtPath.length == 1 && metadataNbtPath[0].isEmpty())
             metadataNbtPath = new String[0];
         this.fallbackNBTCheck.loadNbtCondition(value, properties, metadataNbtPath, this.matchValue);
     }
 
+    private static String[] metadataNbtPath(String metadata) {
+        return metadata.split("\\.");
+    }
+
     @Override
     public boolean test(CITContext context) {
         /*? >=1.21 {*/
+        if (this.legacyCustomModelData)
+            return testLegacyCustomModelData(context);
+
         if (testComponent(context, this.componentType))
             return true;
         if (this.fallbackComponentType != null && this.fallbackComponentType != this.componentType)
@@ -79,6 +96,19 @@ public class ConditionComponents extends CITCondition {
     }
 
     /*? >=1.21 {*/
+    private boolean testLegacyCustomModelData(CITContext context) {
+        Object stackComponent = context.stack.getComponents().get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        if (!(stackComponent instanceof CustomModelDataComponent customModelData))
+            return false;
+
+        /*? >=1.21.4 {*/
+        Float legacyValue = customModelData.getFloat(0);
+        return legacyValue != null && this.fallbackNBTCheck.testValue(NbtFloat.of(legacyValue), context);
+        /*?} else {*/
+        /*return this.fallbackNBTCheck.testValue(NbtFloat.of(customModelData.value()), context);
+        *//*?}*/
+    }
+
     private boolean testComponent(CITContext context, ComponentType<?> componentType) {
         Object stackComponent = context.stack.getComponents().get(componentType);
         if (stackComponent == null)
