@@ -1,3 +1,15 @@
+## 1.2.2-fork.5+1.21.11
+
+### Fixed
+
+- Restored legacy `nbt.Damage=...` condition support for Minecraft 1.21.11.
+- Added support for item subtexture overrides such as `texture.layer1=...`.
+- Added ISO-8859-1/Latin-1 fallback parsing for `.properties` files that are not valid UTF-8.
+- Fixed armor CIT loading when packs contain invalid legacy item ids.
+- Added a turtle shell armor compatibility alias for legacy `texture.turtle_layer_1=...` rules on modern `turtle_scute` equipment assets.
+- Preserved sorted elytra CIT selection order so worn elytra variants respect weight/path priority.
+- Updated the Fabric API dependency id from `fabric` to `fabric-api`.
+
 ## 1.2.2-fork.3+1.21.11
 
 1. Fixed item CITs that use both `model` and `texture`.
