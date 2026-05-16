@@ -152,10 +152,20 @@ public class TypeArmor extends CITType {
         if (replacement != null)
             return replacement;
 
+        if (basePath.equals("turtle_scute")) {
+            legacyKey = "turtle_layer_" + layerIndex;
+            replacement = this.textures.get(legacyKey);
+            if (replacement != null)
+                return replacement;
+        }
+
         return this.textures.get(null);
     }
 
     private static boolean isArmorItem(Item item) {
+        if (item == null)
+            return false;
+
         ItemStack stack = item.getDefaultStack();
         EquippableComponent equippable = stack.get(DataComponentTypes.EQUIPPABLE);
         if (equippable == null || equippable.assetId().isEmpty() || stack.get(DataComponentTypes.GLIDER) != null)

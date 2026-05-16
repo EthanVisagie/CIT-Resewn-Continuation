@@ -15,10 +15,9 @@ import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
+import java.util.Set;
 
 public class TypeElytra extends CITType {
     @Entrypoint(CITTypeContainer.ENTRYPOINT)
@@ -51,7 +50,7 @@ public class TypeElytra extends CITType {
 
         public final List<Function<LivingEntity, ItemStack>> getItemInSlotCompatRedirects = new ArrayList<>();
 
-        public Set<CIT<TypeElytra>> loaded = new HashSet<>();
+        public final List<CIT<TypeElytra>> loaded = new ArrayList<>();
 
         @Override
         public void load(List<CIT<TypeElytra>> parsedCITs) {
