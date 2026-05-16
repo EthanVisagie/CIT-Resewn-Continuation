@@ -4,6 +4,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 public class PropertiesGroupAdapter extends PropertyGroup {
@@ -20,7 +23,7 @@ public class PropertiesGroupAdapter extends PropertyGroup {
 
     @Override
     public PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, InvalidIdentifierException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new StringReader(readPropertiesText(is)))) {
             String line;
             int linePos = 0, multilineSkip = 0;
             while ((line = reader.readLine()) != null) {
@@ -99,5 +102,18 @@ public class PropertiesGroupAdapter extends PropertyGroup {
             }
         }
         return this;
+    }
+
+    private static String readPropertiesText(InputStream is) throws IOException {
+        byte[] bytes = is.readAllBytes();
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(bytes))
+                    .toString();
+        } catch (CharacterCodingException e) {
+            return StandardCharsets.ISO_8859_1.decode(ByteBuffer.wrap(bytes)).toString();
+        }
     }
 }
