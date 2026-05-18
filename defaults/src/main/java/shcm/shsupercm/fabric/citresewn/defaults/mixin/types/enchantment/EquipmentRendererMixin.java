@@ -5,9 +5,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.model.Model;
+import net.minecraft.client.render.entity.equipment.EquipmentModel;
 import net.minecraft.client.render.entity.equipment.EquipmentRenderer;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.equipment.EquipmentAsset;
+import net.minecraft.registry.RegistryKey;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import shcm.shsupercm.fabric.citresewn.cit.CIT;
@@ -32,9 +36,9 @@ public class EquipmentRendererMixin {
             RenderLayer layer,
             boolean glint,
             Operation<VertexConsumer> original,
-            Object layerType,
-            Object assetKey,
-            Object model,
+            EquipmentModel.LayerType layerType,
+            RegistryKey<EquipmentAsset> assetKey,
+            Model model,
             ItemStack stack
     ) {
         if (!CONTAINER.active() || !TypeEnchantment.hasEnchantments(stack))
