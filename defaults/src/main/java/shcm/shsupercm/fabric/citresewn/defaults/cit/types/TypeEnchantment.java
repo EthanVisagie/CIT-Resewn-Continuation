@@ -3,22 +3,22 @@ package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import net.minecraft.enchantment.EnchantmentHelper;
 /*? >=1.21.11*/
-/*import net.minecraft.client.MinecraftClient;*/
+import net.minecraft.client.MinecraftClient;
 /*? >=1.21.11*/
-/*import net.minecraft.client.gl.RenderPipelines;*/
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.RenderLayer;
 /*? >=1.21.11*/
-/*import net.minecraft.client.render.LayeringTransform;*/
+import net.minecraft.client.render.LayeringTransform;
 /*? >=1.21.11*/
-/*import net.minecraft.client.render.OutputTarget;*/
+import net.minecraft.client.render.OutputTarget;
 /*? >=1.21.11*/
-/*import net.minecraft.client.render.RenderSetup;*/
+import net.minecraft.client.render.RenderSetup;
 /*? >=1.21.11*/
-/*import net.minecraft.client.render.TextureTransform;*/
+import net.minecraft.client.render.TextureTransform;
 /*? >=1.21.11*/
-/*import net.minecraft.util.Util;*/
+import net.minecraft.util.Util;
 /*? >=1.21.11*/
-/*import org.joml.Matrix4f;*/
+import org.joml.Matrix4f;
 import net.minecraft.item.ItemStack;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -32,7 +32,7 @@ import shcm.shsupercm.fabric.citresewn.cit.CITContext;
 import shcm.shsupercm.fabric.citresewn.cit.CITType;
 import shcm.shsupercm.fabric.citresewn.defaults.config.CITResewnDefaultsConfig;
 /*? >=1.21.11*/
-/*import shcm.shsupercm.fabric.citresewn.defaults.mixin.types.enchantment.RenderLayerInvoker;*/
+import shcm.shsupercm.fabric.citresewn.defaults.mixin.types.enchantment.RenderLayerInvoker;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
@@ -59,9 +59,9 @@ public class TypeEnchantment extends CITType {
     private RenderLayer itemGlintTranslucentLayer;
     private RenderLayer armorGlintLayer;
     /*? >=1.21.11*/
-    /*private TextureTransform itemTextureTransform;*/
+    private TextureTransform itemTextureTransform;
     /*? >=1.21.11*/
-    /*private TextureTransform armorTextureTransform;*/
+    private TextureTransform armorTextureTransform;
 
     @Override
     public Set<PropertyKey> typeProperties() {
@@ -134,7 +134,7 @@ public class TypeEnchantment extends CITType {
     }
 
     /*? >=1.21.11 {*/
-    /*public RenderLayer getItemGlintLayer(boolean translucent) {
+    public RenderLayer getItemGlintLayer(boolean translucent) {
         if (translucent) {
             if (this.itemGlintTranslucentLayer == null)
                 this.itemGlintTranslucentLayer = createItemGlintLayer("glint_translucent", OutputTarget.ITEM_ENTITY_TARGET);
@@ -196,15 +196,15 @@ public class TypeEnchantment extends CITType {
                     .scale(scale);
         });
     }
-    *//*?} else {*/
-    public RenderLayer getItemGlintLayer(boolean translucent) {
+    /*?} else {*/
+    /*public RenderLayer getItemGlintLayer(boolean translucent) {
         return translucent ? RenderLayer.getArmorEntityGlint() : RenderLayer.getGlint();
     }
 
     public RenderLayer getArmorGlintLayer() {
         return RenderLayer.getArmorEntityGlint();
     }
-    /*?}*/
+    *//*?}*/
 
     private void warnIfPresent(PropertyGroup properties, String key, String message) {
         for (PropertyValue propertyValue : properties.get("citresewn", key)) {
