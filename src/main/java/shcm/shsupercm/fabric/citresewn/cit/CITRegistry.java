@@ -2,7 +2,7 @@ package shcm.shsupercm.fabric.citresewn.cit;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import shcm.shsupercm.fabric.citresewn.api.CITConditionContainer;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.cit.builtin.conditions.ConstantCondition;
@@ -88,7 +88,7 @@ public final class CITRegistry { private CITRegistry(){}
     }
 
     private static void registerTypeContainer(String namespace, CITTypeContainer<?> container) {
-        Identifier id = Identifier.of(namespace, container.id);
+        Identifier id = Identifier.fromNamespaceAndPath(namespace, container.id);
         TYPES.putIfAbsent(id, container);
         TYPE_TO_ID.putIfAbsent(container.createType.get().getClass(), id);
     }
@@ -122,7 +122,7 @@ public final class CITRegistry { private CITRegistry(){}
      * @throws UnknownCITTypeException if the given type is unrecognized in the registry
      */
     public static CITType parseType(PropertyGroup properties) throws UnknownCITTypeException {
-        Identifier type = Identifier.of("citresewn", "item");
+        Identifier type = Identifier.fromNamespaceAndPath("citresewn", "item");
 
         PropertyValue propertiesType = properties.getLastWithoutMetadata("citresewn", "type");
         if (propertiesType != null) {

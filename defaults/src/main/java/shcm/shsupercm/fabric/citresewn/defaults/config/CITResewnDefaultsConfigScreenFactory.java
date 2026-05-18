@@ -4,8 +4,8 @@ import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import shcm.shsupercm.fabric.citresewn.config.CITResewnConfigScreenFactory;
 
 public class CITResewnDefaultsConfigScreenFactory {
@@ -15,14 +15,14 @@ public class CITResewnDefaultsConfigScreenFactory {
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Text.translatable("config.citresewn-defaults.title"))
+                .setTitle(Component.translatable("config.citresewn-defaults.title"))
                 .setSavingRunnable(currentConfig::write);
 
-        ConfigCategory category = builder.getOrCreateCategory(Text.empty());
+        ConfigCategory category = builder.getOrCreateCategory(Component.empty());
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        category.addEntry(entryBuilder.startFloatField(Text.translatable("config.citresewn-defaults.type_enchantment_scroll_multiplier.title"), currentConfig.type_enchantment_scroll_multiplier)
-                .setTooltip(Text.translatable("config.citresewn-defaults.type_enchantment_scroll_multiplier.tooltip"))
+        category.addEntry(entryBuilder.startFloatField(Component.translatable("config.citresewn-defaults.type_enchantment_scroll_multiplier.title"), currentConfig.type_enchantment_scroll_multiplier)
+                .setTooltip(Component.translatable("config.citresewn-defaults.type_enchantment_scroll_multiplier.tooltip"))
                 .setSaveConsumer(newConfig -> currentConfig.type_enchantment_scroll_multiplier = newConfig)
                 .setDefaultValue(defaultConfig.type_enchantment_scroll_multiplier)
                 .build());

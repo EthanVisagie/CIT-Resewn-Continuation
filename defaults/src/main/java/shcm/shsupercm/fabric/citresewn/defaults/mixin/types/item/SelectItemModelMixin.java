@@ -3,10 +3,10 @@ package shcm.shsupercm.fabric.citresewn.defaults.mixin.types.item;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import net.minecraft.client.render.item.model.ItemModel;
-import net.minecraft.client.render.item.model.SelectItemModel;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.text.Text;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.SelectItemModel;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -18,12 +18,12 @@ public class SelectItemModelMixin {
             method = "update",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/item/model/SelectItemModel$ModelSelector;get(Ljava/lang/Object;Lnet/minecraft/client/world/ClientWorld;)Lnet/minecraft/client/render/item/model/ItemModel;"
+                    target = "Lnet/minecraft/client/renderer/item/SelectItemModel$ModelSelector;get(Ljava/lang/Object;Lnet/minecraft/client/multiplayer/ClientLevel;)Lnet/minecraft/client/renderer/item/ItemModel;"
             )
     )
-    private ItemModel citresewn$fallbackToMaterialStrippedName(SelectItemModel.ModelSelector<Object> selector, Object value, ClientWorld world, Operation<ItemModel> original) {
+    private ItemModel citresewn$fallbackToMaterialStrippedName(SelectItemModel.ModelSelector<Object> selector, Object value, ClientLevel world, Operation<ItemModel> original) {
         ItemModel model = original.call(selector, value, world);
-        if (!(value instanceof Text text))
+        if (!(value instanceof Component text))
             return model;
 
         String name = text.getString();
@@ -31,7 +31,7 @@ public class SelectItemModelMixin {
         if (stripped.equals(name))
             return model;
 
-        Text strippedText = Text.literal(stripped).setStyle(text.getStyle());
+        Component strippedText = Component.literal(stripped).withStyle(text.getStyle());
 
         Object2ObjectMap<?, ?> cases = citresewn$getSelectorCases(selector);
         if (cases != null) {

@@ -1,7 +1,11 @@
 package shcm.shsupercm.fabric.citresewn.pack;
 
-import net.minecraft.resource.*;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
 import shcm.shsupercm.fabric.citresewn.cit.builtin.conditions.core.FallbackCondition;
 import shcm.shsupercm.fabric.citresewn.cit.builtin.conditions.core.WeightCondition;
@@ -37,17 +41,17 @@ public final class PackParser { private PackParser() {}
      * @return globalProperties
      */
     public static GlobalProperties loadGlobalProperties(ResourceManager resourceManager, GlobalProperties globalProperties) {
-        for (ResourcePack pack : resourceManager.streamResourcePacks().collect(Collectors.toList()))
-            for (String namespace : pack.getNamespaces(ResourceType.CLIENT_RESOURCES))
+        for (PackResources pack : resourceManager.listPacks().collect(Collectors.toList()))
+            for (String namespace : pack.getNamespaces(PackType.CLIENT_RESOURCES))
                 for (String root : ROOTS) {
-                    Identifier identifier = Identifier.of(namespace, root + "/cit.properties");
+                    Identifier identifier = Identifier.fromNamespaceAndPath(namespace, root + "/cit.properties");
                     try {
-                        InputSupplier<InputStream> citPropertiesSupplier = pack.open(ResourceType.CLIENT_RESOURCES, identifier);
+                        IoSupplier<InputStream> citPropertiesSupplier = pack.getResource(PackType.CLIENT_RESOURCES, identifier);
                         if (citPropertiesSupplier != null)
-                            globalProperties.load(pack./*? <1.21 {*//*getName*//*?} else {*/getId/*?}*/(), identifier, citPropertiesSupplier.get());
+                            globalProperties.load(pack./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/(), identifier, citPropertiesSupplier.get());
                     } catch (FileNotFoundException ignored) {
                     } catch (Exception e) {
-                        CITResewn.logErrorLoading("Errored while loading global properties: " + identifier + " from " + pack./*? <1.21 {*//*getName*//*?} else {*/getId/*?}*/());
+                        CITResewn.logErrorLoading("Errored while loading global properties: " + identifier + " from " + pack./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/());
                         e.printStackTrace();
                     }
                 }
@@ -63,10 +67,10 @@ public final class PackParser { private PackParser() {}
         List<CIT<?>> cits = new ArrayList<>();
 
         for (String root : ROOTS) {
-            for (Map.Entry<Identifier, Resource> entry : resourceManager.findResources(root + "/cit", s -> s.getPath().endsWith(".properties")).entrySet()) {
+            for (Map.Entry<Identifier, Resource> entry : resourceManager.listResources(root + "/cit", s -> s.getPath().endsWith(".properties")).entrySet()) {
                 String packName = null;
                 try {
-                    cits.add(parseCIT(PropertyGroup.tryParseGroup(packName = entry.getValue().getPack()./*? <1.21 {*//*getName*//*?} else {*/getId/*?}*/(), entry.getKey(), entry.getValue().getInputStream()), resourceManager));
+                    cits.add(parseCIT(PropertyGroup.tryParseGroup(packName = entry.getValue().source()./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/(), entry.getKey(), entry.getValue().open()), resourceManager));
                 } catch (CITParsingException e) {
                     CITResewn.logErrorLoading(e.getMessage());
                 } catch (Exception e) {

@@ -1,16 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.minecraft.client.render.entity.equipment.EquipmentModel;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.cit.*;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.conditions.ConditionItems;
@@ -20,6 +10,16 @@ import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import net.minecraft.client.resources.model.EquipmentClientInfo;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.equipment.Equippable;
 
 public class TypeArmor extends CITType {
     @Entrypoint(CITTypeContainer.ENTRYPOINT)
@@ -46,9 +46,9 @@ public class TypeArmor extends CITType {
         if (!itemsConditionPresent)
             try {
                 Identifier propertiesName = Identifier.tryParse(properties.stripName());
-                if (!Registries.ITEM.containsId(propertiesName))
+                if (!BuiltInRegistries.ITEM.containsKey(propertiesName))
                     throw new Exception();
-                Item item = Registries.ITEM.get(propertiesName);
+                Item item = BuiltInRegistries.ITEM.getValue(propertiesName);
                 if (!isArmorItem(item))
                     throw new Exception();
                 conditions.add(new ConditionItems(item));
@@ -118,7 +118,7 @@ public class TypeArmor extends CITType {
                     return stack;
             }
 
-            return entity.getEquippedStack(slot);
+            return entity.getItemBySlot(slot);
         }
     }
 
@@ -126,13 +126,13 @@ public class TypeArmor extends CITType {
         CITCache.Single<TypeArmor> citresewn$getCacheTypeArmor();
     }
 
-    public Identifier getTexture(EquipmentModel.LayerType layerType, EquipmentModel.Layer layer, Identifier originalTexture) {
+    public Identifier getTexture(EquipmentClientInfo.LayerType layerType, EquipmentClientInfo.Layer layer, Identifier originalTexture) {
         String basePath = layer.textureId().getPath();
         String currentPath = originalTexture.getPath();
         String currentKey = currentPath.startsWith("textures/entity/equipment/") && currentPath.endsWith(".png")
                 ? currentPath.substring("textures/entity/equipment/".length(), currentPath.length() - ".png".length())
                 : currentPath;
-        int layerIndex = layerType == EquipmentModel.LayerType.HUMANOID_LEGGINGS ? 2 : 1;
+        int layerIndex = layerType == EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS ? 2 : 1;
 
         Identifier replacement = this.textures.get(currentKey);
         if (replacement != null)
@@ -152,28 +152,24 @@ public class TypeArmor extends CITType {
         if (replacement != null)
             return replacement;
 
-        if (basePath.equals("turtle_scute")) {
-            legacyKey = "turtle_layer_" + layerIndex;
-            replacement = this.textures.get(legacyKey);
-            if (replacement != null)
-                return replacement;
-        }
-
         return this.textures.get(null);
     }
 
     private static boolean isArmorItem(Item item) {
-        if (item == null)
-            return false;
+        try {
+            ItemStack stack = item.getDefaultInstance();
+            Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+            if (equippable == null || equippable.assetId().isEmpty() || stack.get(DataComponents.GLIDER) != null)
+                return false;
 
-        ItemStack stack = item.getDefaultStack();
-        EquippableComponent equippable = stack.get(DataComponentTypes.EQUIPPABLE);
-        if (equippable == null || equippable.assetId().isEmpty() || stack.get(DataComponentTypes.GLIDER) != null)
-            return false;
-
-        return switch (equippable.slot()) {
-            case HEAD, CHEST, LEGS, FEET -> true;
-            default -> false;
-        };
+            return switch (equippable.slot()) {
+                case HEAD, CHEST, LEGS, FEET -> true;
+                default -> false;
+            };
+        } catch (NullPointerException ignored) {
+            // In 26.1 this warning-only check can run before item default components
+            // are fully bound during resource reload. Avoid rejecting otherwise valid CITs.
+            return true;
+        }
     }
 }

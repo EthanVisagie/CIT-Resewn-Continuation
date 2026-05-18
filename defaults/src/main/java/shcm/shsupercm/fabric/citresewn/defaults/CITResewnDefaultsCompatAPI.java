@@ -4,9 +4,9 @@ import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeArmor;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeElytra;
 

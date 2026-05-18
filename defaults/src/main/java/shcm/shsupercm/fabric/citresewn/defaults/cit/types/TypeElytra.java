@@ -1,13 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.cit.*;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.conditions.ConditionItems;
@@ -15,9 +8,17 @@ import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.function.Function;
 import java.util.Set;
+import java.util.function.Function;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public class TypeElytra extends CITType {
     @Entrypoint(CITTypeContainer.ENTRYPOINT)
@@ -50,7 +51,7 @@ public class TypeElytra extends CITType {
 
         public final List<Function<LivingEntity, ItemStack>> getItemInSlotCompatRedirects = new ArrayList<>();
 
-        public final List<CIT<TypeElytra>> loaded = new ArrayList<>();
+        public Set<CIT<TypeElytra>> loaded = new LinkedHashSet<>();
 
         @Override
         public void load(List<CIT<TypeElytra>> parsedCITs) {
@@ -81,7 +82,30 @@ public class TypeElytra extends CITType {
                     return stack;
             }
 
-            return entity.getEquippedStack(EquipmentSlot.CHEST);
+            return entity.getItemBySlot(EquipmentSlot.CHEST);
+        }
+    }
+
+    public static class ElytraCITCache extends CITCache.Single<TypeElytra> {
+        private int lastDamage = Integer.MIN_VALUE;
+        private int lastMaxDamage = Integer.MIN_VALUE;
+
+        public ElytraCITCache() {
+            super(CONTAINER::getRealTimeCIT);
+        }
+
+        @Override
+        public java.lang.ref.WeakReference<CIT<TypeElytra>> get(CITContext context) {
+            int damage = context.stack.isDamageableItem() ? context.stack.getDamageValue() : 0;
+            int maxDamage = context.stack.isDamageableItem() ? context.stack.getMaxDamage() : 0;
+
+            if (damage != lastDamage || maxDamage != lastMaxDamage) {
+                this.cit = null;
+                this.lastDamage = damage;
+                this.lastMaxDamage = maxDamage;
+            }
+
+            return super.get(context);
         }
     }
 
@@ -90,6 +114,13 @@ public class TypeElytra extends CITType {
     }
 
     private static boolean isElytraItem(Item item) {
-        return item.getDefaultStack().get(DataComponentTypes.GLIDER) != null;
+        try {
+            return item.getDefaultInstance().get(DataComponents.GLIDER) != null;
+        } catch (NullPointerException ignored) {
+            // In 26.1 this can run during resource reload before item default components
+            // are fully bound. This check is only used for warnings, so fall back to the
+            // vanilla elytra identity instead of failing the whole CIT.
+            return item == net.minecraft.world.item.Items.ELYTRA;
+        }
     }
 }

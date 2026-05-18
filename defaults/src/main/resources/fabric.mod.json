@@ -16,7 +16,7 @@
   },
 
   "environment": "client",
-  "accessWidener" : "citresewn-defaults.accesswidener",
+  // ACCESS_WIDENER
   "entrypoints": {
     "client": [
       "shcm.shsupercm.fabric.citresewn.defaults.CITResewnDefaults"

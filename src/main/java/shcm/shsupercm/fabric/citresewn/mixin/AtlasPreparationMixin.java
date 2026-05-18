@@ -1,12 +1,12 @@
 package shcm.shsupercm.fabric.citresewn.mixin;
 
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(SpriteAtlasTexture.class)
+@Mixin(TextureAtlas.class)
 public abstract class AtlasPreparationMixin {
 
     @ModifyVariable(method = "getSprite", argsOnly = true, at = @At("HEAD"))

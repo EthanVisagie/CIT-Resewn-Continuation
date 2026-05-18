@@ -4,11 +4,10 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import java.util.function.Function;
 
 /**
@@ -32,18 +31,18 @@ public class CITResewnConfigScreenFactory {
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Text.translatable("config.citresewn.title"))
+                .setTitle(Component.translatable("config.citresewn.title"))
                 .setSavingRunnable(currentConfig::write);
 
-        ConfigCategory category = builder.getOrCreateCategory(Text.empty());
+        ConfigCategory category = builder.getOrCreateCategory(Component.empty());
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        category.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.citresewn.enabled.title"), currentConfig.enabled)
-                .setTooltip(Text.translatable("config.citresewn.enabled.tooltip"))
+        category.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.citresewn.enabled.title"), currentConfig.enabled)
+                .setTooltip(Component.translatable("config.citresewn.enabled.tooltip"))
                 .setSaveConsumer(newConfig -> {
                     if (currentConfig.enabled != newConfig) {
                         currentConfig.enabled = newConfig;
-                        MinecraftClient.getInstance().reloadResources();
+                        Minecraft.getInstance().reloadResourcePacks();
                     }
                 })
                 .setDefaultValue(defaultConfig.enabled)
@@ -51,8 +50,8 @@ public class CITResewnConfigScreenFactory {
 
         if (FabricLoader.getInstance().isModLoaded("citresewn-defaults")) {
             class CurrentScreen { boolean prevToggle = false; } final CurrentScreen currentScreen = new CurrentScreen();
-            category.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.citresewn-defaults.title"), false)
-                    .setTooltip(Text.translatable("config.citresewn-defaults.tooltip"))
+            category.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.citresewn-defaults.title"), false)
+                    .setTooltip(Component.translatable("config.citresewn-defaults.tooltip"))
 
                     .setYesNoTextSupplier((b) -> {
                         if (b != currentScreen.prevToggle) {
@@ -60,49 +59,49 @@ public class CITResewnConfigScreenFactory {
                             if (defaultsFactory == null)
                                 defaultsFactory = getDefaultsFactoryReflectively();
                             if (defaultsFactory != null)
-                                MinecraftClient.getInstance().setScreen((Screen) defaultsFactory.apply(create(parent)));
+                                Minecraft.getInstance().setScreenAndShow((Screen) defaultsFactory.apply(create(parent)));
 
                             currentScreen.prevToggle = b;
                         }
 
-                        return Text.translatable("config.citresewn.configure");
+                        return Component.translatable("config.citresewn.configure");
                     })
                     .build());
         }
 
-        category.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.citresewn.mute_errors.title"), currentConfig.mute_errors)
-                .setTooltip(Text.translatable("config.citresewn.mute_errors.tooltip"))
+        category.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.citresewn.mute_errors.title"), currentConfig.mute_errors)
+                .setTooltip(Component.translatable("config.citresewn.mute_errors.tooltip"))
                 .setSaveConsumer(newConfig -> currentConfig.mute_errors = newConfig)
                 .setDefaultValue(defaultConfig.mute_errors)
                 .build());
 
-        category.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.citresewn.mute_warns.title"), currentConfig.mute_warns)
-                .setTooltip(Text.translatable("config.citresewn.mute_warns.tooltip"))
+        category.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.citresewn.mute_warns.title"), currentConfig.mute_warns)
+                .setTooltip(Component.translatable("config.citresewn.mute_warns.tooltip"))
                 .setSaveConsumer(newConfig -> currentConfig.mute_warns = newConfig)
                 .setDefaultValue(defaultConfig.mute_warns)
                 .build());
 
-        category.addEntry(entryBuilder.startIntSlider(Text.translatable("config.citresewn.cache_ms.title"), currentConfig.cache_ms / 50, 0, 5 * 20)
-                .setTooltip(Text.translatable("config.citresewn.cache_ms.tooltip"))
+        category.addEntry(entryBuilder.startIntSlider(Component.translatable("config.citresewn.cache_ms.title"), currentConfig.cache_ms / 50, 0, 5 * 20)
+                .setTooltip(Component.translatable("config.citresewn.cache_ms.tooltip"))
                 .setSaveConsumer(newConfig -> currentConfig.cache_ms = newConfig * 50)
                 .setDefaultValue(defaultConfig.cache_ms / 50)
                 .setTextGetter(ticks -> {
                     if (ticks <= 1)
-                        return Text.translatable("config.citresewn.cache_ms.ticks." + ticks).formatted(Formatting.AQUA);
+                        return Component.translatable("config.citresewn.cache_ms.ticks." + ticks).withStyle(ChatFormatting.AQUA);
 
-                    Formatting color = Formatting.DARK_RED;
+                    ChatFormatting color = ChatFormatting.DARK_RED;
 
-                    if (ticks <= 40) color = Formatting.RED;
-                    if (ticks <= 20) color = Formatting.GOLD;
-                    if (ticks <= 10) color = Formatting.DARK_GREEN;
-                    if (ticks <= 5) color = Formatting.GREEN;
+                    if (ticks <= 40) color = ChatFormatting.RED;
+                    if (ticks <= 20) color = ChatFormatting.GOLD;
+                    if (ticks <= 10) color = ChatFormatting.DARK_GREEN;
+                    if (ticks <= 5) color = ChatFormatting.GREEN;
 
-                    return Text.translatable("config.citresewn.cache_ms.ticks.any", ticks).formatted(color);
+                    return Component.translatable("config.citresewn.cache_ms.ticks.any", ticks).withStyle(color);
                 })
                 .build());
 
-        category.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.citresewn.broken_paths.title"), currentConfig.broken_paths)
-                .setTooltip(Text.translatable("config.citresewn.broken_paths.tooltip"))
+        category.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.citresewn.broken_paths.title"), currentConfig.broken_paths)
+                .setTooltip(Component.translatable("config.citresewn.broken_paths.tooltip"))
                 .setSaveConsumer(newConfig -> currentConfig.broken_paths = newConfig)
                 .setDefaultValue(defaultConfig.broken_paths)
                 .requireRestart()

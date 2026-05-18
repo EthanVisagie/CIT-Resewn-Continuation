@@ -5,8 +5,8 @@ import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import com.mojang.brigadier.StringReader;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.nbt.*;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import shcm.shsupercm.fabric.citresewn.api.CITConditionContainer;
 import shcm.shsupercm.fabric.citresewn.cit.CITCondition;
 import shcm.shsupercm.fabric.citresewn.cit.CITContext;
@@ -27,13 +27,13 @@ public class ConditionNBT extends CITCondition {
     protected String[] path;
 
     protected StringMatcher matchString = null;
-    protected NbtInt matchInteger = null;
-    protected NbtByte matchByte = null;
-    protected NbtFloat matchFloat = null;
-    protected NbtDouble matchDouble = null;
-    protected NbtLong matchLong = null;
-    protected NbtShort matchShort = null;
-    protected NbtElement matchElement = null;
+    protected IntTag matchInteger = null;
+    protected ByteTag matchByte = null;
+    protected FloatTag matchFloat = null;
+    protected DoubleTag matchDouble = null;
+    protected LongTag matchLong = null;
+    protected ShortTag matchShort = null;
+    protected Tag matchElement = null;
 
     @Override
     public void load(PropertyKey key, PropertyValue value, PropertyGroup properties) throws CITParsingException {
@@ -53,9 +53,9 @@ public class ConditionNBT extends CITCondition {
 
         try {
             if (nbtValue.startsWith("regex:"))
-                matchString = StringMatcher.regex(nbtValue.substring(6));
+                matchString = new StringMatcher.RegexMatcher(nbtValue.substring(6));
             else if (nbtValue.startsWith("iregex:"))
-                matchString = StringMatcher.iregex(nbtValue.substring(7));
+                matchString = new StringMatcher.IRegexMatcher(nbtValue.substring(7));
             else if (nbtValue.startsWith("pattern:"))
                 matchString = new StringMatcher.PatternMatcher(nbtValue.substring(8));
             else if (nbtValue.startsWith("ipattern:"))
@@ -67,29 +67,29 @@ public class ConditionNBT extends CITCondition {
         } catch (Exception ignored) { }
         try {
             if (nbtValue.startsWith("#"))
-                matchInteger = NbtInt.of(Integer.parseInt(nbtValue.substring(1).toLowerCase(Locale.ENGLISH), 16));
+                matchInteger = IntTag.valueOf(Integer.parseInt(nbtValue.substring(1).toLowerCase(Locale.ENGLISH), 16));
             else if (nbtValue.startsWith("0x"))
-                matchInteger = NbtInt.of(Integer.parseInt(nbtValue.substring(2).toLowerCase(Locale.ENGLISH), 16));
+                matchInteger = IntTag.valueOf(Integer.parseInt(nbtValue.substring(2).toLowerCase(Locale.ENGLISH), 16));
             else
-                matchInteger = NbtInt.of(Integer.parseInt(nbtValue));
+                matchInteger = IntTag.valueOf(Integer.parseInt(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchByte = NbtByte.of(Byte.parseByte(nbtValue));
+            matchByte = ByteTag.valueOf(Byte.parseByte(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchFloat = NbtFloat.of(Float.parseFloat(nbtValue));
+            matchFloat = FloatTag.valueOf(Float.parseFloat(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchDouble = NbtDouble.of(Double.parseDouble(nbtValue));
+            matchDouble = DoubleTag.valueOf(Double.parseDouble(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchLong = NbtLong.of(Long.parseLong(nbtValue));
+            matchLong = LongTag.valueOf(Long.parseLong(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchShort = NbtShort.of(Short.parseShort(nbtValue));
+            matchShort = ShortTag.valueOf(Short.parseShort(nbtValue));
         } catch (Exception ignored) { }
         try {
-            matchElement = StringNbtReader.fromOps(NbtOps.INSTANCE).read(nbtValue);
+            matchElement = TagParser.create(NbtOps.INSTANCE).parseFully(nbtValue);
         } catch (Exception ignored) { }
     }
 
@@ -102,7 +102,7 @@ public class ConditionNBT extends CITCondition {
         *//*?}*/
     }
 
-    public boolean testPath(NbtElement element, int pathIndex, CITContext context) {
+    public boolean testPath(Tag element, int pathIndex, CITContext context) {
         if (element == null)
             return false;
 
@@ -111,21 +111,21 @@ public class ConditionNBT extends CITCondition {
 
         final String path = this.path[pathIndex];
         if (path.equals("*")) {
-            if (element instanceof NbtCompound compound) {
-                for (NbtElement subElement : compound.entries.values())
+            if (element instanceof CompoundTag compound) {
+                for (Tag subElement : compound.values())
                     if (testPath(subElement, pathIndex + 1, context))
                         return true;
-            } else if (element instanceof NbtList list) {
-                for (NbtElement subElement : list)
+            } else if (element instanceof ListTag list) {
+                for (Tag subElement : list)
                     if (testPath(subElement, pathIndex + 1, context))
                         return true;
             }
         } else {
-            if (element instanceof NbtCompound compound)
+            if (element instanceof CompoundTag compound)
                 return testPath(compound.get(path), pathIndex + 1, context);
-            else if (element instanceof NbtList list) {
+            else if (element instanceof ListTag list) {
                 if (path.equals("count"))
-                    return testValue(NbtInt.of(list.size()), context);
+                    return testValue(IntTag.valueOf(list.size()), context);
 
                 try {
                     return testPath(list.get(Integer.parseInt(path)), pathIndex + 1, context);
@@ -136,39 +136,39 @@ public class ConditionNBT extends CITCondition {
         return false;
     }
 
-    public boolean testValue(NbtElement element, CITContext context) {
+    public boolean testValue(Tag element, CITContext context) {
         try {
-            if (element instanceof NbtString nbtString)
+            if (element instanceof StringTag nbtString)
                 return testString(nbtString.value(), null, context);
-            else if (element instanceof NbtInt nbtInt && matchInteger != null)
+            else if (element instanceof IntTag nbtInt && matchInteger != null)
                 return nbtInt.equals(matchInteger);
-            else if (element instanceof NbtByte nbtByte && matchByte != null)
+            else if (element instanceof ByteTag nbtByte && matchByte != null)
                 return nbtByte.equals(matchByte);
-            else if (element instanceof NbtFloat nbtFloat && matchFloat != null)
+            else if (element instanceof FloatTag nbtFloat && matchFloat != null)
                 return nbtFloat.equals(matchFloat);
-            else if (element instanceof NbtDouble nbtDouble && matchDouble != null)
+            else if (element instanceof DoubleTag nbtDouble && matchDouble != null)
                 return nbtDouble.equals(matchDouble);
-            else if (element instanceof NbtLong nbtLong && matchLong != null)
+            else if (element instanceof LongTag nbtLong && matchLong != null)
                 return nbtLong.equals(matchLong);
-            else if (element instanceof NbtShort nbtShort && matchShort != null)
+            else if (element instanceof ShortTag nbtShort && matchShort != null)
                 return nbtShort.equals(matchShort);
-            else if ((element instanceof NbtCompound || element instanceof NbtList) && matchElement != null)
-                return NbtHelper.matches(matchElement, element, true);
+            else if ((element instanceof CompoundTag || element instanceof ListTag) && matchElement != null)
+                return NbtUtils.compareNbt(matchElement, element, true);
 
-            if (element instanceof AbstractNbtNumber nbtNumber && !(matchString instanceof StringMatcher.DirectMatcher))
-                return matchString.matches(String.valueOf(nbtNumber.numberValue()));
+            if (element instanceof NumericTag nbtNumber && !(matchString instanceof StringMatcher.DirectMatcher))
+                return matchString.matches(String.valueOf(nbtNumber.box()));
         } catch (Exception ignored) { }
         return false;
     }
 
-    public boolean testString(String element, Text elementText, CITContext context) {
+    public boolean testString(String element, Component elementText, CITContext context) {
         if (element != null) {
             if (matchString.matches(element))
                 return true;
 
             if (elementText == null) {
                 try {
-                    elementText = TextCodecs.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(element)).result().orElse(null);
+                    elementText = ComponentSerialization.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(element)).result().orElse(null);
                 } catch (Exception ignored) { }
             }
         }
@@ -182,29 +182,6 @@ public class ConditionNBT extends CITCondition {
     protected static abstract class StringMatcher {
         public abstract boolean matches(String value);
 
-        public static StringMatcher regex(String pattern) {
-            String literal = literalRegex(pattern);
-            return literal == null ? new RegexMatcher(pattern) : new DirectMatcher(literal);
-        }
-
-        public static StringMatcher iregex(String pattern) {
-            String literal = literalRegex(pattern);
-            return literal == null ? new IRegexMatcher(pattern) : new IDirectMatcher(literal);
-        }
-
-        private static String literalRegex(String pattern) {
-            if (pattern.length() >= 2 && pattern.charAt(0) == '(' && pattern.charAt(pattern.length() - 1) == ')')
-                pattern = pattern.substring(1, pattern.length() - 1);
-
-            for (int i = 0; i < pattern.length(); i++) {
-                char c = pattern.charAt(i);
-                if (c == '\\' || c == '[' || c == ']' || c == '{' || c == '}' || c == '*' || c == '+' || c == '?' || c == '|' || c == '^' || c == '$' || c == '.')
-                    return null;
-            }
-
-            return pattern;
-        }
-
         public static class DirectMatcher extends StringMatcher {
             protected final String pattern;
 
@@ -215,19 +192,6 @@ public class ConditionNBT extends CITCondition {
             @Override
             public boolean matches(String value) {
                 return pattern.equals(value);
-            }
-        }
-
-        public static class IDirectMatcher extends StringMatcher {
-            protected final String pattern;
-
-            public IDirectMatcher(String pattern) {
-                this.pattern = pattern;
-            }
-
-            @Override
-            public boolean matches(String value) {
-                return pattern.equalsIgnoreCase(value);
             }
         }
 

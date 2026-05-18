@@ -1,7 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.cit.builtin.conditions.core;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.minecraft.util.Identifier;
 import shcm.shsupercm.fabric.citresewn.api.CITConditionContainer;
 import shcm.shsupercm.fabric.citresewn.api.CITGlobalProperties;
 import shcm.shsupercm.fabric.citresewn.cit.CIT;
@@ -9,6 +8,7 @@ import shcm.shsupercm.fabric.citresewn.cit.builtin.conditions.IdentifierConditio
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
 
 import java.util.*;
+import net.minecraft.resources.Identifier;
 
 /**
  * Core property used to set the fallback of the CIT.<br>
@@ -63,8 +63,8 @@ public class FallbackCondition extends IdentifierCondition {
             if (cit.fallback == null) {
                 if (fallbackCITResewnRoot && cit.propertiesIdentifier.getPath().startsWith("citresewn/")) {
                     String subPath = cit.propertiesIdentifier.getPath().substring(10);
-                    remove.add(Identifier.of(cit.propertiesIdentifier.getNamespace(), "optifine/" + subPath));
-                    remove.add(Identifier.of(cit.propertiesIdentifier.getNamespace(), "mcpatcher/" + subPath));
+                    remove.add(Identifier.fromNamespaceAndPath(cit.propertiesIdentifier.getNamespace(), "optifine/" + subPath));
+                    remove.add(Identifier.fromNamespaceAndPath(cit.propertiesIdentifier.getNamespace(), "mcpatcher/" + subPath));
                 }
             } else {
                 remove.add(cit.fallback);

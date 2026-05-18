@@ -1,4 +1,4 @@
-plugins.apply 'fabric-loom'
+plugins.apply 'net.fabricmc.fabric-loom'
 plugins.apply 'io.shcm.shsupercm.fabric.fletchingtable'
 
 version = "${property('mod.version')}+${stonecutter.current.version}"
@@ -11,21 +11,18 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${stonecutter.current.version}"
-    mappings "net.fabricmc:yarn:${property('deps.yarn')}:v2"
 
-    modImplementation "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
+    implementation "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
+    compileOnly "com.terraformersmc:modmenu:${property('deps.modmenu')}"
+    compileOnly "me.shedaniel.cloth:cloth-config-fabric:${property('deps.cloth-config')}"
 
-    implementation project(path: stonecutter.node.sibling("").getPath(), configuration: "namedElements")
+    implementation project(path: stonecutter.node.sibling("").getPath())
 
-    modCompileOnly "com.terraformersmc:modmenu:${property('deps.modmenu')}"
-    modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:${property('deps.cloth-config')}"
-
-    // testing mods
-    modRuntimeOnly "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
-    modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
-    modRuntimeOnly "com.terraformersmc:modmenu:${property('deps.modmenu')}"
-    modRuntimeOnly "me.shedaniel.cloth:cloth-config-fabric:${property('deps.cloth-config')}"
+    runtimeOnly "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
+    runtimeOnly "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
+    runtimeOnly "com.terraformersmc:modmenu:${property('deps.modmenu')}"
+    runtimeOnly "me.shedaniel.cloth:cloth-config-fabric:${property('deps.cloth-config')}"
 }
 
 fletchingTable {
@@ -36,8 +33,6 @@ fletchingTable {
 }
 
 loom {
-    accessWidenerPath = file("../../src/main/resources/citresewn-defaults.accesswidener")
-
     validateAccessWidener {
         enabled = false
     }
@@ -48,8 +43,8 @@ loom {
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 base {
@@ -57,16 +52,18 @@ base {
 }
 
 processResources {
-    inputs.property 'mod_version', version
-
     filesMatching('fabric.mod.json') {
         expand 'mod_version': version
+        filter { String line ->
+            if (line.contains('// ACCESS_WIDENER')) {
+                return ''
+            }
+            return line
+        }
     }
 }
 
 jar {
-    archiveClassifier.set 'dev'
-
     from rootProject.file('LICENSE')
 }
 

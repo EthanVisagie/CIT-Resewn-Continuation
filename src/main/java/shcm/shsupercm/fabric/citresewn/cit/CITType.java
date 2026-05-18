@@ -1,7 +1,5 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
@@ -9,6 +7,8 @@ import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
 
 import java.util.*;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 /**
  * Instanced parent for CIT Types that are applied to items when conditions pass.
@@ -53,7 +53,7 @@ public abstract class CITType {
             path = rootIdentifier.getPath().substring(0, rootIdentifier.getPath().length() - 11);
             if (!path.endsWith(extension))
                 path = path + extension;
-            Identifier pathIdentifier = Identifier.of(rootIdentifier.getNamespace(), path);
+            Identifier pathIdentifier = Identifier.fromNamespaceAndPath(rootIdentifier.getNamespace(), path);
             return resourceManager.getResource(pathIdentifier).isPresent() ? pathIdentifier: null;
         }
 
@@ -66,17 +66,17 @@ public abstract class CITType {
         if (path.startsWith("./"))
             path = path.substring(2);
         else if (!path.contains("..")) {
-            pathIdentifier = Identifier.of(pathIdentifier.getNamespace(), path);
+            pathIdentifier = Identifier.fromNamespaceAndPath(pathIdentifier.getNamespace(), path);
             if (resourceManager.getResource(pathIdentifier).isPresent())
                 return pathIdentifier;
             else if (path.startsWith("assets/")) {
                 path = path.substring(7);
                 int sep = path.indexOf('/');
-                pathIdentifier = Identifier.of(path.substring(0, sep), path.substring(sep + 1));
+                pathIdentifier = Identifier.fromNamespaceAndPath(path.substring(0, sep), path.substring(sep + 1));
                 if (resourceManager.getResource(pathIdentifier).isPresent())
                     return pathIdentifier;
             }
-            pathIdentifier = Identifier.of(pathIdentifier.getNamespace(), defaultedTypeDirectory + "/" + path);
+            pathIdentifier = Identifier.fromNamespaceAndPath(pathIdentifier.getNamespace(), defaultedTypeDirectory + "/" + path);
             if (resourceManager.getResource(pathIdentifier).isPresent())
                 return pathIdentifier;
         }
@@ -97,7 +97,7 @@ public abstract class CITType {
             pathParts.addLast(path);
         path = String.join("/", pathParts);
 
-        pathIdentifier = Identifier.of(rootIdentifier.getNamespace(), path);
+        pathIdentifier = Identifier.fromNamespaceAndPath(rootIdentifier.getNamespace(), path);
 
         return resourceManager.getResource(pathIdentifier).isPresent() ? pathIdentifier : null;
     }

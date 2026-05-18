@@ -1,6 +1,5 @@
 package shcm.shsupercm.fabric.citresewn.defaults.mixin.types.enchantment;
 
-import net.minecraft.client.render.item.ItemRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -9,8 +8,9 @@ import shcm.shsupercm.fabric.citresewn.cit.CIT;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeEnchantment;
 
 import java.util.List;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 
-@Mixin(ItemRenderState.class)
+@Mixin(ItemStackRenderState.class)
 public class ItemRenderStateMixin implements TypeEnchantment.CITEnchantmentRenderState {
     private List<CIT<TypeEnchantment>> citresewn$typeEnchantments = List.of();
 

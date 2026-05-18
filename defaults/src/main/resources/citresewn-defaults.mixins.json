@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "shcm.shsupercm.fabric.citresewn.defaults.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "types.armor.EquipmentRendererMixin",
     "types.armor.LayerTextureKeyAccessor",
@@ -17,8 +17,8 @@
     "types.item.BakedModelManagerMixin",
     "types.item.ItemAssetsLoaderMixin",
     "types.item.ItemModelManagerMixin",
-    "types.item.SelectItemModelMixin",
-    "types.item.ItemStackMixin"
+    "types.item.ItemStackMixin",
+    "types.item.SelectItemModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

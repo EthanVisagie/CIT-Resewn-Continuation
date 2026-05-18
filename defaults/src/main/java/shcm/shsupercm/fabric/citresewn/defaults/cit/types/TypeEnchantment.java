@@ -1,27 +1,17 @@
 package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.minecraft.enchantment.EnchantmentHelper;
-/*? >=1.21.11*/
-import net.minecraft.client.MinecraftClient;
-/*? >=1.21.11*/
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.RenderLayer;
-/*? >=1.21.11*/
-import net.minecraft.client.render.LayeringTransform;
-/*? >=1.21.11*/
-import net.minecraft.client.render.OutputTarget;
-/*? >=1.21.11*/
-import net.minecraft.client.render.RenderSetup;
-/*? >=1.21.11*/
-import net.minecraft.client.render.TextureTransform;
-/*? >=1.21.11*/
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
+import net.minecraft.client.renderer.rendertype.OutputTarget;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.TextureTransform;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Util;
-/*? >=1.21.11*/
 import org.joml.Matrix4f;
-import net.minecraft.item.ItemStack;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import shcm.shsupercm.fabric.citresewn.api.CITGlobalProperties;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.cit.CIT;
@@ -31,7 +21,6 @@ import shcm.shsupercm.fabric.citresewn.cit.CITParsingException;
 import shcm.shsupercm.fabric.citresewn.cit.CITContext;
 import shcm.shsupercm.fabric.citresewn.cit.CITType;
 import shcm.shsupercm.fabric.citresewn.defaults.config.CITResewnDefaultsConfig;
-/*? >=1.21.11*/
 import shcm.shsupercm.fabric.citresewn.defaults.mixin.types.enchantment.RenderLayerInvoker;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
@@ -55,12 +44,10 @@ public class TypeEnchantment extends CITType {
     public float rotation = 10.0f;
     public float duration = 1.0f;
 
-    private RenderLayer itemGlintLayer;
-    private RenderLayer itemGlintTranslucentLayer;
-    private RenderLayer armorGlintLayer;
-    /*? >=1.21.11*/
+    private RenderType itemGlintLayer;
+    private RenderType itemGlintTranslucentLayer;
+    private RenderType armorGlintLayer;
     private TextureTransform itemTextureTransform;
-    /*? >=1.21.11*/
     private TextureTransform armorTextureTransform;
 
     @Override
@@ -133,8 +120,7 @@ public class TypeEnchantment extends CITType {
         warnIfPresent(properties, "a", "custom glint colors are not ported to 1.21.11 yet");
     }
 
-    /*? >=1.21.11 {*/
-    public RenderLayer getItemGlintLayer(boolean translucent) {
+    public RenderType getItemGlintLayer(boolean translucent) {
         if (translucent) {
             if (this.itemGlintTranslucentLayer == null)
                 this.itemGlintTranslucentLayer = createItemGlintLayer("glint_translucent", OutputTarget.ITEM_ENTITY_TARGET);
@@ -146,26 +132,26 @@ public class TypeEnchantment extends CITType {
         return this.itemGlintLayer;
     }
 
-    public RenderLayer getArmorGlintLayer() {
+    public RenderType getArmorGlintLayer() {
         if (this.armorGlintLayer == null) {
-            RenderSetup.Builder builder = RenderSetup.builder(RenderPipelines.GLINT)
-                    .texture("Sampler0", this.texture)
-                    .textureTransform(getArmorTextureTransform())
-                    .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING);
-            this.armorGlintLayer = RenderLayerInvoker.citresewn$of("citresewn_armor_glint_" + this.texture, builder.build());
+            RenderSetup.RenderSetupBuilder builder = RenderSetup.builder(RenderPipelines.GLINT)
+                    .withTexture("Sampler0", this.texture)
+                    .setTextureTransform(getArmorTextureTransform())
+                    .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING);
+            this.armorGlintLayer = RenderLayerInvoker.citresewn$of("citresewn_armor_glint_" + this.texture, builder.createRenderSetup());
         }
 
         return this.armorGlintLayer;
     }
 
-    private RenderLayer createItemGlintLayer(String kind, OutputTarget outputTarget) {
-        RenderSetup.Builder builder = RenderSetup.builder(RenderPipelines.GLINT)
-                .texture("Sampler0", this.texture)
-                .textureTransform(getItemTextureTransform());
+    private RenderType createItemGlintLayer(String kind, OutputTarget outputTarget) {
+        RenderSetup.RenderSetupBuilder builder = RenderSetup.builder(RenderPipelines.GLINT)
+                .withTexture("Sampler0", this.texture)
+                .setTextureTransform(getItemTextureTransform());
         if (outputTarget != null)
-            builder.outputTarget(outputTarget);
+            builder.setOutputTarget(outputTarget);
 
-        return RenderLayerInvoker.citresewn$of("citresewn_" + kind + "_" + this.texture, builder.build());
+        return RenderLayerInvoker.citresewn$of("citresewn_" + kind + "_" + this.texture, builder.createRenderSetup());
     }
 
     private TextureTransform getItemTextureTransform() {
@@ -182,9 +168,9 @@ public class TypeEnchantment extends CITType {
 
     private TextureTransform createTextureTransform(String name, float scale) {
         return new TextureTransform(name, () -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            double speedMultiplier = client.options.getGlintSpeed().getValue() * 8.0d * CITResewnDefaultsConfig.INSTANCE.type_enchantment_scroll_multiplier * this.speed;
-            long time = (long) (Util.getMeasuringTimeMs() * speedMultiplier);
+            Minecraft client = Minecraft.getInstance();
+            double speedMultiplier = client.options.glintSpeed().get() * 8.0d * CITResewnDefaultsConfig.INSTANCE.type_enchantment_scroll_multiplier * this.speed;
+            long time = (long) (Util.getMillis() * speedMultiplier);
             long primaryPeriod = Math.max(1L, Math.round(110000.0d * this.duration));
             long secondaryPeriod = Math.max(1L, Math.round(30000.0d * this.duration));
             float primaryOffset = (time % primaryPeriod) / (float) primaryPeriod;
@@ -196,25 +182,12 @@ public class TypeEnchantment extends CITType {
                     .scale(scale);
         });
     }
-    /*?} else {*/
-    /*public RenderLayer getItemGlintLayer(boolean translucent) {
-        return translucent ? RenderLayer.getArmorEntityGlint() : RenderLayer.getGlint();
-    }
-
-    public RenderLayer getArmorGlintLayer() {
-        return RenderLayer.getArmorEntityGlint();
-    }
-    *//*?}*/
 
     private void warnIfPresent(PropertyGroup properties, String key, String message) {
         for (PropertyValue propertyValue : properties.get("citresewn", key)) {
             warn(message, propertyValue, properties);
             break;
         }
-    }
-
-    public static boolean hasEnchantments(ItemStack stack) {
-        return stack != null && EnchantmentHelper.hasEnchantments(stack);
     }
 
     public static class Container extends CITTypeContainer<TypeEnchantment> implements CITGlobalProperties {
@@ -237,9 +210,6 @@ public class TypeEnchantment extends CITType {
         }
 
         public List<CIT<TypeEnchantment>> getCITs(CITContext context) {
-            if (!hasEnchantments(context.stack))
-                return List.of();
-
             List<CIT<TypeEnchantment>> cits = new ArrayList<>();
             for (var reference : ((CITCacheEnchantment) (Object) context.stack).citresewn$getCacheTypeEnchantment().get(context)) {
                 CIT<TypeEnchantment> cit = reference.get();
@@ -251,9 +221,6 @@ public class TypeEnchantment extends CITType {
         }
 
         public List<CIT<TypeEnchantment>> getRealTimeCITs(CITContext context) {
-            if (!hasEnchantments(context.stack))
-                return List.of();
-
             List<CIT<TypeEnchantment>> cits = new ArrayList<>();
             for (CIT<TypeEnchantment> cit : this.loaded)
                 if (cit.test(context))

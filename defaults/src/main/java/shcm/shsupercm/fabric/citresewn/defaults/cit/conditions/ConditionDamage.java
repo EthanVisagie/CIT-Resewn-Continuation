@@ -21,7 +21,7 @@ public class ConditionDamage extends IntegerCondition {
 
     @Override
     protected int getValue(CITContext context) {
-        int value = context.stack.isDamageable() ? context.stack.getDamage() : 0;
+        int value = context.stack.isDamageableItem() ? context.stack.getDamageValue() : 0;
         if (mask != null)
             value &= mask;
         return value;
@@ -29,7 +29,7 @@ public class ConditionDamage extends IntegerCondition {
 
     @Override
     protected int getPercentageTotalValue(CITContext context) {
-        return context.stack.isDamageable() ? context.stack.getMaxDamage() : 0;
+        return context.stack.isDamageableItem() ? context.stack.getMaxDamage() : 0;
     }
 
     @Override

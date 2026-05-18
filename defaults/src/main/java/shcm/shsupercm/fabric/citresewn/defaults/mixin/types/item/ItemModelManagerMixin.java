@@ -1,18 +1,9 @@
 package shcm.shsupercm.fabric.citresewn.defaults.mixin.types.item;
 
-import net.minecraft.client.item.ItemAsset;
-import net.minecraft.client.item.ItemModelManager;
-import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.client.render.item.model.ItemModel;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.HeldItemContext;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,19 +13,31 @@ import shcm.shsupercm.fabric.citresewn.cit.CITContext;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeEnchantment;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeItem;
 
-import java.util.function.Function;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ClientItem;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ItemOwner;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import static shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeItem.CONTAINER;
 
-@Mixin(ItemModelManager.class)
+@Mixin(ItemModelResolver.class)
 public abstract class ItemModelManagerMixin {
-    @Shadow @Final private Function<Identifier, ItemModel> modelGetter;
-    @Shadow @Final private Function<Identifier, ItemAsset.Properties> propertiesGetter;
+    @Invoker("getItemModel")
+    public abstract ItemModel invokeGetItemModel(Identifier id);
 
-    @Inject(method = "update", at = @At("HEAD"), cancellable = true)
-    private void citresewn$update(ItemRenderState renderState, ItemStack stack, ItemDisplayContext displayContext, World world, HeldItemContext heldItemContext, int seed, CallbackInfo ci) {
-        CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.getEntity());
-        if (TypeEnchantment.CONTAINER.active() && TypeEnchantment.hasEnchantments(stack))
+    @Invoker("getItemProperties")
+    public abstract ClientItem.Properties invokeGetItemProperties(Identifier id);
+
+    @Inject(method = "appendItemLayers", at = @At("HEAD"), cancellable = true)
+    private void citresewn$update(ItemStackRenderState renderState, ItemStack stack, ItemDisplayContext displayContext, Level world, ItemOwner heldItemContext, int seed, CallbackInfo ci) {
+        CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.asLivingEntity());
+        if (TypeEnchantment.CONTAINER.active())
             ((TypeEnchantment.CITEnchantmentRenderState) renderState).citresewn$setTypeEnchantments(TypeEnchantment.CONTAINER.getCITs(context));
         else
             ((TypeEnchantment.CITEnchantmentRenderState) renderState).citresewn$setTypeEnchantments(java.util.List.of());
@@ -43,8 +46,8 @@ public abstract class ItemModelManagerMixin {
         if (identifier == null)
             return;
 
-        ItemAsset.Properties properties = this.propertiesGetter.apply(identifier);
-        ItemModel itemModel = this.modelGetter.apply(identifier);
+        ClientItem.Properties properties = this.invokeGetItemProperties(identifier);
+        ItemModel itemModel = this.invokeGetItemModel(identifier);
         if (properties == null || itemModel == null) {
             ci.cancel();
             return;
@@ -54,43 +57,41 @@ public abstract class ItemModelManagerMixin {
         itemModel.update(
                 renderState,
                 stack,
-                (ItemModelManager) (Object) this,
+                (ItemModelResolver) (Object) this,
                 displayContext,
-                world instanceof ClientWorld clientWorld ? clientWorld : null,
+                world instanceof ClientLevel clientWorld ? clientWorld : null,
                 heldItemContext,
                 seed
         );
         ci.cancel();
     }
 
-    @Inject(method = "hasHandAnimationOnSwap", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "shouldPlaySwapAnimation", at = @At("HEAD"), cancellable = true)
     private void citresewn$hasHandAnimationOnSwap(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         Identifier identifier = citresewn$getItemModelId(stack, null, null);
         if (identifier == null)
             return;
 
-        ItemAsset.Properties properties = this.propertiesGetter.apply(identifier);
+        ClientItem.Properties properties = this.invokeGetItemProperties(identifier);
         if (properties != null)
             cir.setReturnValue(properties.handAnimationOnSwap());
     }
 
-    /*? >=1.21.11 {*/
-    @Inject(method = "getSwapAnimationScale", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "swapAnimationScale", at = @At("HEAD"), cancellable = true)
     private void citresewn$getSwapAnimationScale(ItemStack stack, CallbackInfoReturnable<Float> cir) {
         Identifier identifier = citresewn$getItemModelId(stack, null, null);
         if (identifier == null)
             return;
 
-        ItemAsset.Properties properties = this.propertiesGetter.apply(identifier);
+        ClientItem.Properties properties = this.invokeGetItemProperties(identifier);
         if (properties != null)
             cir.setReturnValue(properties.swapAnimationScale());
     }
-    /*?}*/
 
-    private Identifier citresewn$getItemModelId(ItemStack stack, World world, HeldItemContext heldItemContext) {
+    private Identifier citresewn$getItemModelId(ItemStack stack, Level world, ItemOwner heldItemContext) {
         CIT<TypeItem> cit = null;
         if (CONTAINER.active()) {
-            CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.getEntity());
+            CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.asLivingEntity());
             cit = CONTAINER.getCIT(context);
         }
 
@@ -100,6 +101,6 @@ public abstract class ItemModelManagerMixin {
                 return generatedId;
         }
 
-        return stack.get(net.minecraft.component.DataComponentTypes.ITEM_MODEL);
+        return stack.get(net.minecraft.core.component.DataComponents.ITEM_MODEL);
     }
 }

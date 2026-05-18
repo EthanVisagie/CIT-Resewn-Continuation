@@ -1,7 +1,7 @@
 package shcm.shsupercm.fabric.citresewn.cit.builtin.conditions;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
+import net.minecraft.IdentifierException;
+import net.minecraft.resources.Identifier;
 import shcm.shsupercm.fabric.citresewn.cit.CITCondition;
 import shcm.shsupercm.fabric.citresewn.cit.CITContext;
 import shcm.shsupercm.fabric.citresewn.cit.CITParsingException;
@@ -31,7 +31,7 @@ public abstract class IdentifierCondition extends CITCondition {
     public void load(PropertyKey key, PropertyValue value, PropertyGroup properties) throws CITParsingException {
         try {
             this.value = Identifier.tryParse(value.value());
-        } catch (InvalidIdentifierException e) {
+        } catch (IdentifierException e) {
             throw new CITParsingException(e.getMessage(), properties, value.position());
         }
     }

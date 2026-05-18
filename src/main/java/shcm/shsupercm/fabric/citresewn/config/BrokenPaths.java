@@ -1,6 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.config;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import shcm.shsupercm.fabric.citresewn.mixin.broken_paths.*;
 
 /**

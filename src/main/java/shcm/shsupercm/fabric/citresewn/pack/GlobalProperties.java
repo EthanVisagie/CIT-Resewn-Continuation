@@ -2,9 +2,9 @@ package shcm.shsupercm.fabric.citresewn.pack;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
+import net.minecraft.IdentifierException;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class GlobalProperties extends PropertyGroup {
     public GlobalProperties() {
-        super("global_properties", Identifier.of("citresewn", "global_properties"));
+        super("global_properties", Identifier.fromNamespaceAndPath("citresewn", "global_properties"));
     }
 
     @Override
@@ -34,7 +34,7 @@ public class GlobalProperties extends PropertyGroup {
     }
 
     @Override
-    public PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, InvalidIdentifierException {
+    public PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, IdentifierException {
         PropertyGroup group = PropertyGroup.tryParseGroup(packName, identifier, is);
         if (group != null)
             for (Map.Entry<PropertyKey, Set<PropertyValue>> entry : group.properties.entrySet())

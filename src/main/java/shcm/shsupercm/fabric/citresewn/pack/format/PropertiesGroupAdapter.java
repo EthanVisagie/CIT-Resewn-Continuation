@@ -1,13 +1,9 @@
 package shcm.shsupercm.fabric.citresewn.pack.format;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import net.minecraft.IdentifierException;
+import net.minecraft.resources.Identifier;
 
 public class PropertiesGroupAdapter extends PropertyGroup {
     public static final String EXTENSION = ".properties";
@@ -22,14 +18,12 @@ public class PropertiesGroupAdapter extends PropertyGroup {
     }
 
     @Override
-    public PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, InvalidIdentifierException {
-        try (BufferedReader reader = new BufferedReader(new StringReader(readPropertiesText(is)))) {
+    public PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, IdentifierException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             String line;
             int linePos = 0, multilineSkip = 0;
             while ((line = reader.readLine()) != null) {
                 linePos++;
-                if (linePos == 1 && !line.isEmpty() && line.charAt(0) == '\uFEFF')
-                    line = line.substring(1);
                 line = line.stripLeading();
                 if (line.isEmpty() || line.startsWith("#") || line.startsWith("!"))
                     continue;
@@ -102,18 +96,5 @@ public class PropertiesGroupAdapter extends PropertyGroup {
             }
         }
         return this;
-    }
-
-    private static String readPropertiesText(InputStream is) throws IOException {
-        byte[] bytes = is.readAllBytes();
-        try {
-            return StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(bytes))
-                    .toString();
-        } catch (CharacterCodingException e) {
-            return StandardCharsets.ISO_8859_1.decode(ByteBuffer.wrap(bytes)).toString();
-        }
     }
 }

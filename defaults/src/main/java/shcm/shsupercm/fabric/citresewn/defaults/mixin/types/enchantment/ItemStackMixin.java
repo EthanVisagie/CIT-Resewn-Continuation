@@ -1,6 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.defaults.mixin.types.enchantment;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import shcm.shsupercm.fabric.citresewn.cit.CITCache;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeEnchantment;

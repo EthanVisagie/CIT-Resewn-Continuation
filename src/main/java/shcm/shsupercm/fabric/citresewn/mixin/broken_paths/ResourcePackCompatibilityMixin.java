@@ -1,7 +1,7 @@
 package shcm.shsupercm.fabric.citresewn.mixin.broken_paths;
 
-import net.minecraft.resource.ResourcePackCompatibility;
-import net.minecraft.resource.PackVersion;
+import net.minecraft.server.packs.metadata.pack.PackFormat;
+import net.minecraft.server.packs.repository.PackCompatibility;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,22 +14,22 @@ import shcm.shsupercm.fabric.citresewn.config.BrokenPaths;
  * @see BrokenPaths
  * @see AbstractFileResourcePackMixin
  */
-@Mixin(ResourcePackCompatibility.class)
+@Mixin(PackCompatibility.class)
 public abstract class ResourcePackCompatibilityMixin {
-    private static final ResourcePackCompatibility BROKEN_PATHS = ResourcePackCompatibility("BROKEN_PATHS", -1, "broken_paths");
+    private static final PackCompatibility BROKEN_PATHS = ResourcePackCompatibility("BROKEN_PATHS", -1, "broken_paths");
 
     @SuppressWarnings("InvokerTarget")
     @Invoker("<init>")
-    public static ResourcePackCompatibility ResourcePackCompatibility(String internalName, int internalId, String translationSuffix) {
+    public static PackCompatibility ResourcePackCompatibility(String internalName, int internalId, String translationSuffix) {
         throw new AssertionError();
     }
 
-    @Inject(method = "from", cancellable = true, at = @At("HEAD"))
+    @Inject(method = "forVersion", cancellable = true, at = @At("HEAD"))
     private static void citresewn$brokenpaths$redirectBrokenPathsCompatibility
             /*? <=1.20.1 {*/
                 /*(int current, net.minecraft.resource.ResourceType type, CallbackInfoReturnable<ResourcePackCompatibility> cir)
             *//*?} else {*/
-                (net.minecraft.util.dynamic.Range<PackVersion> range, PackVersion current, CallbackInfoReturnable<ResourcePackCompatibility> cir)
+                (net.minecraft.util.InclusiveRange<PackFormat> range, PackFormat current, CallbackInfoReturnable<PackCompatibility> cir)
             /*?}*/ {
         if (range.minInclusive().major() == Integer.MAX_VALUE - 53)
             cir.setReturnValue(BROKEN_PATHS);

@@ -1,8 +1,5 @@
 package shcm.shsupercm.fabric.citresewn.defaults.mixin.types.item;
 
-import net.minecraft.client.item.ItemAsset;
-import net.minecraft.client.item.ItemAssetsLoader;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,21 +10,24 @@ import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeItem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.client.renderer.item.ClientItem;
+import net.minecraft.client.resources.model.ClientItemInfoLoader;
+import net.minecraft.resources.Identifier;
 
 import static shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeItem.CONTAINER;
 
-@Mixin(ItemAssetsLoader.class)
+@Mixin(ClientItemInfoLoader.class)
 public class ItemAssetsLoaderMixin {
-    @Inject(method = "load", at = @At("RETURN"), cancellable = true)
-    private static void citresewn$addItemTypeAssets(net.minecraft.resource.ResourceManager resourceManager, java.util.concurrent.Executor executor, CallbackInfoReturnable<CompletableFuture<ItemAssetsLoader.Result>> cir) {
+    @Inject(method = "scheduleLoad", at = @At("RETURN"), cancellable = true)
+    private static void citresewn$addItemTypeAssets(net.minecraft.server.packs.resources.ResourceManager resourceManager, java.util.concurrent.Executor executor, CallbackInfoReturnable<CompletableFuture<ClientItemInfoLoader.LoadedClientInfos>> cir) {
         if (!CONTAINER.active())
             return;
 
         cir.setReturnValue(cir.getReturnValue().thenApply(result -> {
-            Map<Identifier, ItemAsset> contents = new HashMap<>(result.contents());
+            Map<Identifier, ClientItem> contents = new HashMap<>(result.contents());
             for (CIT<TypeItem> cit : CONTAINER.loaded)
                 contents.putAll(cit.type.createItemAssets());
-            return new ItemAssetsLoader.Result(contents);
+            return new ClientItemInfoLoader.LoadedClientInfos(contents);
         }));
     }
 }

@@ -1,8 +1,8 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.ProfilerFiller;
 import shcm.shsupercm.fabric.citresewn.api.CITDisposable;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.cit.builtin.conditions.core.*;
@@ -20,7 +20,7 @@ import java.util.*;
  */
 public class ActiveCITs { private ActiveCITs() {}
 	/**
-	 * @see #load(ResourceManager, Profiler)
+	 * @see #load(ResourceManager, ProfilerFiller)
 	 * @see #getActive()
 	 * @see #isActive()
 	 */
@@ -61,7 +61,7 @@ public class ActiveCITs { private ActiveCITs() {}
 	 * @param resourceManager manager containing resourcepacks with possible CITs
 	 * @param profiler loading profiler that was pushed once into "citresewn:reloading_cits" and would pop after
 	 */
-    public static void load(ResourceManager resourceManager, Profiler profiler) {
+    public static void load(ResourceManager resourceManager, ProfilerFiller profiler) {
         profiler.push("citresewn:disposing");
         for (CITDisposable disposable : FabricLoader.getInstance().getEntrypoints(CITDisposable.ENTRYPOINT, CITDisposable.class))
             disposable.dispose();
@@ -83,10 +83,10 @@ public class ActiveCITs { private ActiveCITs() {}
 
         ActiveCITs active = new ActiveCITs();
 
-        profiler.swap("citresewn:load_global_properties");
+        profiler.popPush("citresewn:load_global_properties");
         PackParser.loadGlobalProperties(resourceManager, active.globalProperties).callHandlers();
 
-        profiler.swap("citresewn:load_cits");
+        profiler.popPush("citresewn:load_cits");
         List<CIT<?>> cits = PackParser.parseCITs(resourceManager);
 
         FallbackCondition.apply(cits);

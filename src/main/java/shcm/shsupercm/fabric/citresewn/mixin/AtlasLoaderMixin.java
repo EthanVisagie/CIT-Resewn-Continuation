@@ -1,12 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.mixin;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.client.texture.atlas.AtlasLoader;
-import net.minecraft.client.texture.atlas.AtlasSource;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceFinder;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,26 +11,32 @@ import shcm.shsupercm.fabric.citresewn.pack.PackParser;
 
 import java.util.List;
 import java.util.Map;
+import net.minecraft.client.renderer.texture.atlas.SpriteSource;
+import net.minecraft.client.renderer.texture.atlas.SpriteSourceList;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 
-@Mixin(AtlasLoader.class)
+@Mixin(SpriteSourceList.class)
 public class AtlasLoaderMixin {
-    @Shadow @Final private List<AtlasSource> sources;
+    @Shadow @Final private List<SpriteSource> sources;
 
-    @Inject(method = "of", at = @At("RETURN"), cancellable = true)
-    private static void citresewn$atlasSource(ResourceManager resourceManager, Identifier id, CallbackInfoReturnable<AtlasLoader> cir) {
+    @Inject(method = "load", at = @At("RETURN"), cancellable = true)
+    private static void citresewn$atlasSource(ResourceManager resourceManager, Identifier id, CallbackInfoReturnable<SpriteSourceList> cir) {
         if (id.getPath().equals("blocks") && id.getNamespace().equals("minecraft")) {
-            ((AtlasLoaderMixin) (Object) cir.getReturnValue()).sources.add(new AtlasSource() {
+            ((AtlasLoaderMixin) (Object) cir.getReturnValue()).sources.add(new SpriteSource() {
                 @Override
-                public void load(ResourceManager resourceManager, SpriteRegions regions) {
+                public void run(ResourceManager resourceManager, Output regions) {
                     for (String root : PackParser.ROOTS) {
-                        ResourceFinder resourceFinder = new ResourceFinder(root + "/cit", ".png");
-                        for (Map.Entry<Identifier, Resource> entry : resourceFinder.findResources(resourceManager).entrySet())
-                            regions.add(resourceFinder.toResourceId(entry.getKey()).withPrefixedPath(root + "/cit/"), entry.getValue());
+                        FileToIdConverter resourceFinder = new FileToIdConverter(root + "/cit", ".png");
+                        for (Map.Entry<Identifier, Resource> entry : resourceFinder.listMatchingResources(resourceManager).entrySet())
+                            regions.add(resourceFinder.fileToId(entry.getKey()).withPrefix(root + "/cit/"), entry.getValue());
                     }
                 }
 
                 @Override
-                public MapCodec<? extends AtlasSource> getCodec() {
+                public MapCodec<? extends SpriteSource> codec() {
                     return MapCodec.unit(this);
                 }
             });

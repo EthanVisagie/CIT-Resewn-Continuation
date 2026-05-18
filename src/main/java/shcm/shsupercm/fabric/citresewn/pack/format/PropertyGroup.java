@@ -1,11 +1,10 @@
 package shcm.shsupercm.fabric.citresewn.pack.format;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import net.minecraft.IdentifierException;
+import net.minecraft.resources.Identifier;
 
 /**
  * Storage agnostic map of keys and values.<br>
@@ -68,9 +67,9 @@ public abstract class PropertyGroup {
      * @param is a stream containing properties as specified by implementation
      * @return this
      * @throws IOException if errored while reading the stream
-     * @throws InvalidIdentifierException if encountered a malformed {@link Identifier} while reading
+     * @throws IdentifierException if encountered a malformed {@link Identifier} while reading
      */
-    public abstract PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, InvalidIdentifierException;
+    public abstract PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, IdentifierException;
 
     /**
      * Adds the given value to the group.

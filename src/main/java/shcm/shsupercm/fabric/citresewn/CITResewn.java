@@ -40,7 +40,7 @@ public class CITResewn implements ClientModInitializer {
     public static void logWarnLoading(String message) {
         if (CITResewnConfig.INSTANCE.mute_warns)
             return;
-        LOG.warn("[citresewn] " + message);
+        LOG.error("[citresewn] " + message);
     }
 
     /**

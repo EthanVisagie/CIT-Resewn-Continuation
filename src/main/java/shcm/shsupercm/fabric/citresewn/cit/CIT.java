@@ -1,6 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 /**
  * Runtime representation of a CIT, holding its type and conditions as well as additional metadata.

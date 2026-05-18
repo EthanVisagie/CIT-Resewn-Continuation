@@ -3,16 +3,6 @@ package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.minecraft.client.item.ItemAsset;
-import net.minecraft.client.render.item.model.BasicItemModel;
-import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.render.model.json.JsonUnbakedModel;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
 import shcm.shsupercm.fabric.citresewn.cit.CIT;
@@ -33,7 +23,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import net.minecraft.client.renderer.item.ClientItem;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.client.resources.model.cuboid.CuboidModel;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -67,9 +68,9 @@ public class TypeItem extends CITType {
         if (this.items.isEmpty())
             try {
                 Identifier propertiesName = Identifier.tryParse(properties.stripName());
-                if (!Registries.ITEM.containsId(propertiesName))
+                if (!BuiltInRegistries.ITEM.containsKey(propertiesName))
                     throw new Exception();
-                Item item = Registries.ITEM.get(propertiesName);
+                Item item = BuiltInRegistries.ITEM.getValue(propertiesName);
                 conditions.add(new ConditionItems(item));
                 this.items.add(item);
             } catch (Exception ignored) {
@@ -119,18 +120,18 @@ public class TypeItem extends CITType {
                 }
             } else {
                 this.warnedTextureOnly = true;
-                warn("Texture-only item CITs without a base texture are not ported to 1.21.11 yet", properties.get("citresewn", "texture", "tile").iterator().next(), properties);
+                warn("Texture-only item CITs without a base texture are not ported to 26.1 yet", properties.get("citresewn", "texture", "tile").iterator().next(), properties);
             }
         }
     }
 
-    public Map<Identifier, ItemAsset> createItemAssets() {
-        Map<Identifier, ItemAsset> itemAssets = new LinkedHashMap<>();
+    public Map<Identifier, ClientItem> createItemAssets() {
+        Map<Identifier, ClientItem> itemAssets = new LinkedHashMap<>();
         if (this.replacementModelId != null && this.generatedItemModelId != null)
-            itemAssets.put(this.generatedItemModelId, new ItemAsset(new BasicItemModel.Unbaked(this.replacementModelId, List.of()), ItemAsset.Properties.DEFAULT));
+            itemAssets.put(this.generatedItemModelId, new ClientItem(new CuboidItemModelWrapper.Unbaked(this.replacementModelId, Optional.empty(), List.of()), ClientItem.Properties.DEFAULT));
 
         for (Identifier generatedTextureModelId : this.generatedTextureModelIds.values())
-            itemAssets.put(generatedTextureModelId, new ItemAsset(new BasicItemModel.Unbaked(generatedTextureModelId, List.of()), ItemAsset.Properties.DEFAULT));
+            itemAssets.put(generatedTextureModelId, new ClientItem(new CuboidItemModelWrapper.Unbaked(generatedTextureModelId, Optional.empty(), List.of()), ClientItem.Properties.DEFAULT));
 
         return itemAssets;
     }
@@ -142,9 +143,9 @@ public class TypeItem extends CITType {
             try {
                 var resource = resourceManager.getResource(this.replacementModelResourceId);
                 if (resource.isPresent())
-                    try (var inputStream = resource.get().getInputStream()) {
+                    try (var inputStream = resource.get().open()) {
                         String json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                        models.put(this.replacementModelId, JsonUnbakedModel.deserialize(new StringReader(applyReplacementTexture(json))));
+                        models.put(this.replacementModelId, CuboidModel.fromStream(new StringReader(applyReplacementTexture(json))));
                     }
             } catch (IOException e) {
                 CITResewn.logErrorLoading("Errored while loading CIT item model " + this.replacementModelResourceId + ": " + e.getMessage());
@@ -158,7 +159,7 @@ public class TypeItem extends CITType {
                     + "\"parent\":\"" + entry.getKey() + "\","
                     + "\"textures\":{\"layer0\":\"" + this.replacementTextureId + "\"}"
                     + "}";
-            models.put(entry.getValue(), JsonUnbakedModel.deserialize(new StringReader(json)));
+            models.put(entry.getValue(), CuboidModel.fromStream(new StringReader(json)));
         }
 
         return models;
@@ -192,7 +193,7 @@ public class TypeItem extends CITType {
         if (this.generatedItemModelId != null)
             return this.generatedItemModelId;
 
-        Identifier itemModelId = stack.get(DataComponentTypes.ITEM_MODEL);
+        Identifier itemModelId = stack.get(DataComponents.ITEM_MODEL);
         if (itemModelId == null)
             itemModelId = itemModelId(stack.getItem());
 
@@ -205,7 +206,7 @@ public class TypeItem extends CITType {
             path = path.substring("models/".length());
         if (path.endsWith(".json"))
             path = path.substring(0, path.length() - ".json".length());
-        return Identifier.of(resourceIdentifier.getNamespace(), path);
+        return Identifier.fromNamespaceAndPath(resourceIdentifier.getNamespace(), path);
     }
 
     private static Identifier asTextureId(Identifier resourceIdentifier) {
@@ -214,30 +215,30 @@ public class TypeItem extends CITType {
             path = path.substring("textures/".length());
         if (path.endsWith(".png"))
             path = path.substring(0, path.length() - ".png".length());
-        return Identifier.of(resourceIdentifier.getNamespace(), path);
+        return Identifier.fromNamespaceAndPath(resourceIdentifier.getNamespace(), path);
     }
 
     private static Identifier generatedItemModelId(Identifier propertiesIdentifier) {
         String path = propertiesIdentifier.getPath();
         if (path.endsWith(".properties"))
             path = path.substring(0, path.length() - ".properties".length());
-        return Identifier.of("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path);
+        return Identifier.fromNamespaceAndPath("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path);
     }
 
     private static Identifier generatedTextureModelId(Identifier propertiesIdentifier, Identifier itemModelId) {
         String path = propertiesIdentifier.getPath();
         if (path.endsWith(".properties"))
             path = path.substring(0, path.length() - ".properties".length());
-        return Identifier.of("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + itemModelId.getNamespace() + "/" + itemModelId.getPath());
+        return Identifier.fromNamespaceAndPath("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + itemModelId.getNamespace() + "/" + itemModelId.getPath());
     }
 
     private static Identifier itemModelId(Item item) {
-        Identifier itemModelId = item.getDefaultStack().get(DataComponentTypes.ITEM_MODEL);
+        Identifier itemModelId = item.getDefaultInstance().get(DataComponents.ITEM_MODEL);
         if (itemModelId != null)
             return itemModelId;
 
-        Identifier itemId = Registries.ITEM.getId(item);
-        return Identifier.of(itemId.getNamespace(), "item/" + itemId.getPath());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
+        return Identifier.fromNamespaceAndPath(itemId.getNamespace(), "item/" + itemId.getPath());
     }
 
     public static class Container extends CITTypeContainer<TypeItem> {
@@ -277,6 +278,29 @@ public class TypeItem extends CITType {
                         return cit;
 
             return null;
+        }
+    }
+
+    public static class ItemCITCache extends CITCache.Single<TypeItem> {
+        private int lastComponentHash = 0;
+        private Item lastItem = null;
+
+        public ItemCITCache() {
+            super(CONTAINER::getRealTimeCIT);
+        }
+
+        @Override
+        public java.lang.ref.WeakReference<CIT<TypeItem>> get(CITContext context) {
+            Item item = context.stack.getItem();
+            int componentHash = context.stack.getComponents().hashCode();
+
+            if (item != lastItem || componentHash != lastComponentHash) {
+                this.cit = null;
+                this.lastItem = item;
+                this.lastComponentHash = componentHash;
+            }
+
+            return super.get(context);
         }
     }
 

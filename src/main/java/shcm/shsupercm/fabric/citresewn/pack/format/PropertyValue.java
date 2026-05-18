@@ -1,6 +1,6 @@
 package shcm.shsupercm.fabric.citresewn.pack.format;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 /**
  * Wrapped representation of a property group's value with additional attached metadata.

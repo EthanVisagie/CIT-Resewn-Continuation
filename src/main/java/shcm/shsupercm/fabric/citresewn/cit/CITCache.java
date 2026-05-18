@@ -1,12 +1,12 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
-import net.minecraft.item.ItemStack;
 import shcm.shsupercm.fabric.citresewn.config.CITResewnConfig;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Runtime cache for a CIT type to be stored in type implementation specific locations. (usually ducked onto {@link ItemStack}s)

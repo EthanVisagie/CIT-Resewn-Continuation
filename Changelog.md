@@ -1,3 +1,21 @@
+## 1.2.2-fork.5+26.1.2
+
+### Fixed
+
+- Built a compatibility release for Minecraft 26.1, 26.1.1, and 26.1.2.
+- Updated Fabric Loader/Fabric API targets for the 26.1.x line.
+- Includes the 26.1 fixes for Barely Default elytras, damaged elytra priority, and material-prefixed item model names.
+
+## 1.2.2-fork.5+26.1
+
+### Fixed
+
+- Ported CIT Resewn Continuation to Minecraft 26.1/Fabric.
+- Restored Barely Default elytra CIT loading on 26.1.
+- Fixed worn/damaged elytra variant priority so low-durability textures resolve correctly.
+- Restored item model material-prefix fallback for names such as `Diamond Claymore` and `Golden Cutlass`.
+- Kept the defaults module bundled inside the main jar; install only the main jar.
+
 ## 1.2.2-fork.5+1.21.11
 
 ### Fixed

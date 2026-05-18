@@ -1,18 +1,17 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 
 /**
  * Holds momentary information to be used for CITs' condition matching and type effects.
@@ -24,9 +23,9 @@ public class CITContext {
     public final ItemStack stack;
 
     /**
-     * The item's containing world(defaults to {@link MinecraftClient#world} if null)
+     * The item's containing world(defaults to {@link Minecraft#level} if null)
      */
-    public final World world;
+    public final Level world;
 
     /**
      * The item's associated living entity if present. (null if not relevant)
@@ -39,9 +38,9 @@ public class CITContext {
      */
     private Map<Identifier, Integer> enchantments = null;
 
-    public CITContext(ItemStack stack, World world, LivingEntity entity) {
+    public CITContext(ItemStack stack, Level world, LivingEntity entity) {
         this.stack = stack;
-        this.world = world == null ? MinecraftClient.getInstance().world : world;
+        this.world = world == null ? Minecraft.getInstance().level : world;
         this.entity = entity;
     }
 
@@ -56,8 +55,8 @@ public class CITContext {
             /*for (NbtElement nbtElement : stack.isOf(Items.ENCHANTED_BOOK) ? EnchantedBookItem.getEnchantmentNbt(stack) : stack.getEnchantments())
                 this.enchantments.put(EnchantmentHelper.getIdFromNbt((NbtCompound) nbtElement), EnchantmentHelper.getLevelFromNbt((NbtCompound) nbtElement));
             *//*?} else {*/
-            for (Map.Entry<RegistryEntry<Enchantment>, Integer> entry : EnchantmentHelper.getEnchantments(stack).getEnchantmentEntries())
-                this.enchantments.put(entry.getKey().getKey().map(RegistryKey::getValue).orElseGet(() -> Identifier.of("unregistered")), entry.getValue());
+            for (Map.Entry<Holder<Enchantment>, Integer> entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet())
+                this.enchantments.put(entry.getKey().unwrapKey().map(ResourceKey::identifier).orElseGet(() -> Identifier.parse("unregistered")), entry.getValue());
             /*?}*/
 
         }
