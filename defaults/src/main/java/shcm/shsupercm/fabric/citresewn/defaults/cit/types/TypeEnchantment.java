@@ -2,23 +2,7 @@ package shcm.shsupercm.fabric.citresewn.defaults.cit.types;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
 import net.minecraft.enchantment.EnchantmentHelper;
-/*? >=1.21.11*/
-import net.minecraft.client.MinecraftClient;
-/*? >=1.21.11*/
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.RenderLayer;
-/*? >=1.21.11*/
-import net.minecraft.client.render.LayeringTransform;
-/*? >=1.21.11*/
-import net.minecraft.client.render.OutputTarget;
-/*? >=1.21.11*/
-import net.minecraft.client.render.RenderSetup;
-/*? >=1.21.11*/
-import net.minecraft.client.render.TextureTransform;
-/*? >=1.21.11*/
-import net.minecraft.util.Util;
-/*? >=1.21.11*/
-import org.joml.Matrix4f;
 import net.minecraft.item.ItemStack;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -31,8 +15,6 @@ import shcm.shsupercm.fabric.citresewn.cit.CITParsingException;
 import shcm.shsupercm.fabric.citresewn.cit.CITContext;
 import shcm.shsupercm.fabric.citresewn.cit.CITType;
 import shcm.shsupercm.fabric.citresewn.defaults.config.CITResewnDefaultsConfig;
-/*? >=1.21.11*/
-import shcm.shsupercm.fabric.citresewn.defaults.mixin.types.enchantment.RenderLayerInvoker;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
@@ -58,10 +40,6 @@ public class TypeEnchantment extends CITType {
     private RenderLayer itemGlintLayer;
     private RenderLayer itemGlintTranslucentLayer;
     private RenderLayer armorGlintLayer;
-    /*? >=1.21.11*/
-    private TextureTransform itemTextureTransform;
-    /*? >=1.21.11*/
-    private TextureTransform armorTextureTransform;
 
     @Override
     public Set<PropertyKey> typeProperties() {
@@ -133,78 +111,13 @@ public class TypeEnchantment extends CITType {
         warnIfPresent(properties, "a", "custom glint colors are not ported to 1.21.11 yet");
     }
 
-    /*? >=1.21.11 {*/
     public RenderLayer getItemGlintLayer(boolean translucent) {
-        if (translucent) {
-            if (this.itemGlintTranslucentLayer == null)
-                this.itemGlintTranslucentLayer = createItemGlintLayer("glint_translucent", OutputTarget.ITEM_ENTITY_TARGET);
-            return this.itemGlintTranslucentLayer;
-        }
-
-        if (this.itemGlintLayer == null)
-            this.itemGlintLayer = createItemGlintLayer("glint", null);
-        return this.itemGlintLayer;
-    }
-
-    public RenderLayer getArmorGlintLayer() {
-        if (this.armorGlintLayer == null) {
-            RenderSetup.Builder builder = RenderSetup.builder(RenderPipelines.GLINT)
-                    .texture("Sampler0", this.texture)
-                    .textureTransform(getArmorTextureTransform())
-                    .layeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING);
-            this.armorGlintLayer = RenderLayerInvoker.citresewn$of("citresewn_armor_glint_" + this.texture, builder.build());
-        }
-
-        return this.armorGlintLayer;
-    }
-
-    private RenderLayer createItemGlintLayer(String kind, OutputTarget outputTarget) {
-        RenderSetup.Builder builder = RenderSetup.builder(RenderPipelines.GLINT)
-                .texture("Sampler0", this.texture)
-                .textureTransform(getItemTextureTransform());
-        if (outputTarget != null)
-            builder.outputTarget(outputTarget);
-
-        return RenderLayerInvoker.citresewn$of("citresewn_" + kind + "_" + this.texture, builder.build());
-    }
-
-    private TextureTransform getItemTextureTransform() {
-        if (this.itemTextureTransform == null)
-            this.itemTextureTransform = createTextureTransform("citresewn_glint_texturing_" + this.texture, 0.16f);
-        return this.itemTextureTransform;
-    }
-
-    private TextureTransform getArmorTextureTransform() {
-        if (this.armorTextureTransform == null)
-            this.armorTextureTransform = createTextureTransform("citresewn_armor_glint_texturing_" + this.texture, 8.0f);
-        return this.armorTextureTransform;
-    }
-
-    private TextureTransform createTextureTransform(String name, float scale) {
-        return new TextureTransform(name, () -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            double speedMultiplier = client.options.getGlintSpeed().getValue() * 8.0d * CITResewnDefaultsConfig.INSTANCE.type_enchantment_scroll_multiplier * this.speed;
-            long time = (long) (Util.getMeasuringTimeMs() * speedMultiplier);
-            long primaryPeriod = Math.max(1L, Math.round(110000.0d * this.duration));
-            long secondaryPeriod = Math.max(1L, Math.round(30000.0d * this.duration));
-            float primaryOffset = (time % primaryPeriod) / (float) primaryPeriod;
-            float secondaryOffset = (time % secondaryPeriod) / (float) secondaryPeriod;
-
-            return new Matrix4f()
-                    .translation(-primaryOffset, secondaryOffset, 0.0f)
-                    .rotateZ((float) Math.toRadians(this.rotation))
-                    .scale(scale);
-        });
-    }
-    /*?} else {*/
-    /*public RenderLayer getItemGlintLayer(boolean translucent) {
-        return translucent ? RenderLayer.getArmorEntityGlint() : RenderLayer.getGlint();
+        return translucent ? RenderLayer.getGlintTranslucent() : RenderLayer.getGlint();
     }
 
     public RenderLayer getArmorGlintLayer() {
         return RenderLayer.getArmorEntityGlint();
     }
-    *//*?}*/
 
     private void warnIfPresent(PropertyGroup properties, String key, String message) {
         for (PropertyValue propertyValue : properties.get("citresewn", key)) {

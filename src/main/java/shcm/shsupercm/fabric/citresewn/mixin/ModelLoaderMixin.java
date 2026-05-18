@@ -1,6 +1,7 @@
 package shcm.shsupercm.fabric.citresewn.mixin;
 
 import net.minecraft.client.render.model.BakedModelManager;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.profiler.Profilers;
@@ -23,10 +24,10 @@ public class ModelLoaderMixin {
      * @see ActiveCITs#load(ResourceManager, Profiler)
      */
     @Inject(method = "reload", at = @At("HEAD"))
-    private void citresewn$loadCITs(ResourceReloader.Store store, Executor prepareExecutor, ResourceReloader.Synchronizer synchronizer, Executor applyExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+    private void citresewn$loadCITs(ResourceReloader.Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         Profiler profiler = Profilers.get();
         profiler.push("citresewn:reloading_cits");
-        ActiveCITs.load(store.getResourceManager(), profiler);
+        ActiveCITs.load(manager, profiler);
         profiler.pop();
     }
 }

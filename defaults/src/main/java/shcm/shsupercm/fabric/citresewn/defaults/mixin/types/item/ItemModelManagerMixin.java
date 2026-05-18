@@ -5,9 +5,9 @@ import net.minecraft.client.item.ItemModelManager;
 import net.minecraft.client.render.item.ItemRenderState;
 import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.HeldItemContext;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
@@ -32,14 +32,14 @@ public abstract class ItemModelManagerMixin {
     @Shadow @Final private Function<Identifier, ItemAsset.Properties> propertiesGetter;
 
     @Inject(method = "update", at = @At("HEAD"), cancellable = true)
-    private void citresewn$update(ItemRenderState renderState, ItemStack stack, ItemDisplayContext displayContext, World world, HeldItemContext heldItemContext, int seed, CallbackInfo ci) {
-        CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.getEntity());
+    private void citresewn$update(ItemRenderState renderState, ItemStack stack, ItemDisplayContext displayContext, World world, LivingEntity entity, int seed, CallbackInfo ci) {
+        CITContext context = new CITContext(stack, world, entity);
         if (TypeEnchantment.CONTAINER.active() && TypeEnchantment.hasEnchantments(stack))
             ((TypeEnchantment.CITEnchantmentRenderState) renderState).citresewn$setTypeEnchantments(TypeEnchantment.CONTAINER.getCITs(context));
         else
             ((TypeEnchantment.CITEnchantmentRenderState) renderState).citresewn$setTypeEnchantments(java.util.List.of());
 
-        Identifier identifier = citresewn$getItemModelId(stack, world, heldItemContext);
+        Identifier identifier = citresewn$getItemModelId(stack, world, entity);
         if (identifier == null)
             return;
 
@@ -57,7 +57,7 @@ public abstract class ItemModelManagerMixin {
                 (ItemModelManager) (Object) this,
                 displayContext,
                 world instanceof ClientWorld clientWorld ? clientWorld : null,
-                heldItemContext,
+                entity,
                 seed
         );
         ci.cancel();
@@ -74,23 +74,10 @@ public abstract class ItemModelManagerMixin {
             cir.setReturnValue(properties.handAnimationOnSwap());
     }
 
-    /*? >=1.21.11 {*/
-    @Inject(method = "getSwapAnimationScale", at = @At("HEAD"), cancellable = true)
-    private void citresewn$getSwapAnimationScale(ItemStack stack, CallbackInfoReturnable<Float> cir) {
-        Identifier identifier = citresewn$getItemModelId(stack, null, null);
-        if (identifier == null)
-            return;
-
-        ItemAsset.Properties properties = this.propertiesGetter.apply(identifier);
-        if (properties != null)
-            cir.setReturnValue(properties.swapAnimationScale());
-    }
-    /*?}*/
-
-    private Identifier citresewn$getItemModelId(ItemStack stack, World world, HeldItemContext heldItemContext) {
+    private Identifier citresewn$getItemModelId(ItemStack stack, World world, LivingEntity entity) {
         CIT<TypeItem> cit = null;
         if (CONTAINER.active()) {
-            CITContext context = new CITContext(stack, world, heldItemContext == null ? null : heldItemContext.getEntity());
+            CITContext context = new CITContext(stack, world, entity);
             cit = CONTAINER.getCIT(context);
         }
 

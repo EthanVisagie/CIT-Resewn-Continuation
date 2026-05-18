@@ -2,12 +2,13 @@ package shcm.shsupercm.fabric.citresewn.mixin.broken_paths;
 
 import net.minecraft.resource.AbstractFileResourcePack;
 import net.minecraft.resource.ResourcePack;
-import net.minecraft.resource.PackVersion;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.metadata.PackResourceMetadata;
 import net.minecraft.resource.metadata.ResourceMetadataSerializer;
 import net.minecraft.util.dynamic.Range;
 import net.minecraft.util.InvalidIdentifierException;
+
+import java.util.Optional;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,7 +34,8 @@ public abstract class AbstractFileResourcePackMixin implements ResourcePack {
         } catch (InvalidIdentifierException e) {
             cir.setReturnValue((T) new PackResourceMetadata(
                     cir.getReturnValue()./*? >=1.20.4 {*/description()/*?} else {*//*getDescription()*//*?}*/,
-                    new Range<>(PackVersion.of(Integer.MAX_VALUE - 53))
+                    Integer.MAX_VALUE - 53,
+                    Optional.of(new Range<>(Integer.MAX_VALUE - 53))
             ));
         } catch (Exception ignored) { }
     }
