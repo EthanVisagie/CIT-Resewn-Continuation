@@ -74,7 +74,8 @@ public abstract class ItemModelManagerMixin {
             cir.setReturnValue(properties.handAnimationOnSwap());
     }
 
-    @Inject(method = "getSwapAnimationScale", at = @At("HEAD"), cancellable = true)
+    /*? >=1.21.11 {*/
+    /*@Inject(method = "getSwapAnimationScale", at = @At("HEAD"), cancellable = true)
     private void citresewn$getSwapAnimationScale(ItemStack stack, CallbackInfoReturnable<Float> cir) {
         Identifier identifier = citresewn$getItemModelId(stack, null, null);
         if (identifier == null)
@@ -84,6 +85,7 @@ public abstract class ItemModelManagerMixin {
         if (properties != null)
             cir.setReturnValue(properties.swapAnimationScale());
     }
+    *//*?}*/
 
     private Identifier citresewn$getItemModelId(ItemStack stack, World world, HeldItemContext heldItemContext) {
         CIT<TypeItem> cit = null;
