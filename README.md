@@ -2,6 +2,10 @@
   <img src="https://citresewn.shcm.io/img/project_description/logo_shadow.png" width="200px">
 </p>
 
+<p align="center">
+  <a href="https://modrinth.com/mod/cit-resewn-continuation"><img src="https://img.shields.io/badge/Modrinth-CIT%20Resewn%20Continuation-00AF5C?logo=modrinth&logoColor=white" alt="Download on Modrinth"></a>
+</p>
+
 CIT Resewn Continuation is an unofficial community fork of CIT Resewn aimed at keeping the mod working on newer Fabric and Minecraft versions.
 
 The main module serves as an API to add types and conditions while the Defaults module provides the standard CIT behavior used by most packs.
