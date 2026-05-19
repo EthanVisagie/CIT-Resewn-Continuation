@@ -1,25 +1,23 @@
 name: Question
-description: Use to submit a question or if you need help with using the mod. Use only if none of the other options are relevant.   
-labels: ["question", "help wanted"]
+description: Ask something or get help using the mod. Use this if nothing else fits.
+labels: ["question"]
 body:
   - type: markdown
     attributes:
       value: |
-        ### Please fill out the following to submit a question
+        Stuck on something? Ask away.
   - type: textarea
     id: the-question
     attributes:
-      label: The question
-      description: |
-        What would you like to ask?
+      label: What would you like to know?
+      description: The more context you give, the better we can help.
       placeholder: How do I target an item based on its damage value?
     validations:
       required: true
   - type: checkboxes
     id: checklist
     attributes:
-      label: Checklist
-      description: Check the boxes in order to submit the issue
+      label: Before submitting
       options:
-        - label: I checked the issues(both open and closed) and could not find a duplicate of my question
+        - label: I searched existing issues and couldn't find an answer
           required: true
