@@ -1,11 +1,10 @@
 package shcm.shsupercm.fabric.citresewn.pack;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.minecraft.IdentifierException;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
@@ -54,13 +53,8 @@ public class GlobalProperties extends PropertyGroup {
         for (CITGlobalProperties handler : shcm.shsupercm.fabric.citresewn.cit.BuiltinEntrypoints.globalProperties())
             callHandler("citresewn", handler, visited);
 
-        for (EntrypointContainer<CITGlobalProperties> container : FabricLoader.getInstance().getEntrypointContainers(CITGlobalProperties.ENTRYPOINT, CITGlobalProperties.class)) {
-            String containerNamespace = container.getProvider().getMetadata().getId();
-            if (containerNamespace.equals("citresewn-defaults"))
-                containerNamespace = "citresewn";
-
-            callHandler(containerNamespace, container.getEntrypoint(), visited);
-        }
+        for (CITGlobalProperties handler : Platform.services(CITGlobalProperties.class))
+            callHandler("citresewn", handler, visited);
     }
 
     private void callHandler(String namespace, CITGlobalProperties handler, Set<CITGlobalProperties> visited) {

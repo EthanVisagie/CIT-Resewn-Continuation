@@ -1,23 +1,26 @@
-plugins.apply 'net.fabricmc.fabric-loom'
+plugins.apply 'dev.architectury.loom'
 plugins.apply 'io.shcm.shsupercm.fabric.fletchingtable'
 
 version = "${property('mod.version')}+${stonecutter.current.version}"
 group = 'shcm.shsupercm.fabric.citresewn'
 
 repositories {
+    maven { url 'https://maven.neoforged.net/releases/' }
     maven { url 'https://maven.terraformersmc.com/releases/' }
     maven { url 'https://maven.shedaniel.me/' }
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${stonecutter.current.version}"
+    mappings loom.officialMojangMappings()
 
-    implementation "net.fabricmc:fabric-loader:${property('deps.fabric-loader')}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric-api')}"
-    compileOnly "com.terraformersmc:modmenu:${property('deps.modmenu')}"
-    compileOnly "me.shedaniel.cloth:cloth-config-fabric:${property('deps.cloth-config')}"
+    neoForge "net.neoforged:neoforge:${property('deps.neoforge')}"
+    compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${property('deps.cloth-config')}"
+}
 
-    include stonecutter.node.sibling("defaults").project
+loom {
+    runConfigs.client.ideConfigGenerated = false
+    runConfigs.server.ideConfigGenerated = false
 }
 
 fletchingTable {
@@ -27,19 +30,27 @@ fletchingTable {
     defaultMixinEnvironment = "auto"
 }
 
-loom {
-    validateAccessWidener {
-        enabled = false
+sourceSets {
+    main {
+        java.setSrcDirs([
+                file("$buildDir/chiseledSrc/main/java"),
+                rootProject.file("defaults/versions/${stonecutter.current.version}/build/chiseledSrc/main/java")
+        ])
+        resources.setSrcDirs([
+                file("$buildDir/chiseledSrc/main/resources"),
+                rootProject.file("defaults/versions/${stonecutter.current.version}/build/chiseledSrc/main/resources")
+        ])
+        resources {
+            exclude 'fabric.mod.json'
+            exclude '*.accesswidener'
+        }
     }
-
-    runConfigs.client.ideConfigGenerated = false
-    runConfigs.server.ideConfigGenerated = false
 }
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 base {
@@ -47,18 +58,28 @@ base {
 }
 
 processResources {
+    dependsOn tasks.named('setupChiseledBuild')
+    dependsOn project(":defaults:${stonecutter.current.version}").tasks.named('setupChiseledBuild')
+
     inputs.property 'mod_version', version
     inputs.property 'mod_target_mc', project.property('mod.target-mc')
 
-    filesMatching('fabric.mod.json') {
+    exclude 'fabric.mod.json'
+    exclude '*.accesswidener'
+
+    filesMatching('META-INF/neoforge.mods.toml') {
         expand 'mod_version': version, 'mod_target_mc': project.property('mod.target-mc')
-        filter { String line ->
-            if (line.contains('// ACCESS_WIDENER')) {
-                return ''
-            }
-            return line
-        }
     }
+}
+
+compileJava {
+    dependsOn tasks.named('setupChiseledBuild')
+    dependsOn project(":defaults:${stonecutter.current.version}").tasks.named('setupChiseledBuild')
+}
+
+sourcesJar {
+    dependsOn tasks.named('setupChiseledBuild')
+    dependsOn project(":defaults:${stonecutter.current.version}").tasks.named('setupChiseledBuild')
 }
 
 jar {
@@ -103,7 +124,7 @@ if (stonecutter.current.isActive) {
                 mainArtifact(remapJar) {
                     displayName = "v" + version
                 }
-                addGameVersion 'Fabric'
+                addGameVersion 'NeoForge'
                 for (String version : property('publish.target-mc').split(","))
                     addGameVersion version
             }

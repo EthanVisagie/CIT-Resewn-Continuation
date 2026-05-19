@@ -75,7 +75,7 @@ public abstract class PropertyGroup {
      * Adds the given value to the group.
      * @param position implementation specific interpretation of the value's position in the group, has no effect on internal order
      * @param packName the value's resourcepack file name
-     * @param propertiesIdentifier the value's property group location identifier
+     * @param propertiesIdentifier the value's property group location Identifier
      * @param key the value's key name
      * @param keyMetadata nullable, implementation specific metadata for this value's key
      * @param separator implementation specific connection between the key and the value

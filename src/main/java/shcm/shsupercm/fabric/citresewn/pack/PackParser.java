@@ -44,14 +44,14 @@ public final class PackParser { private PackParser() {}
         for (PackResources pack : resourceManager.listPacks().collect(Collectors.toList()))
             for (String namespace : pack.getNamespaces(PackType.CLIENT_RESOURCES))
                 for (String root : ROOTS) {
-                    Identifier identifier = Identifier.fromNamespaceAndPath(namespace, root + "/cit.properties");
+                    Identifier globalPropsId = Identifier.fromNamespaceAndPath(namespace, root + "/cit.properties");
                     try {
-                        IoSupplier<InputStream> citPropertiesSupplier = pack.getResource(PackType.CLIENT_RESOURCES, identifier);
+                        IoSupplier<InputStream> citPropertiesSupplier = pack.getResource(PackType.CLIENT_RESOURCES, globalPropsId);
                         if (citPropertiesSupplier != null)
-                            globalProperties.load(pack./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/(), identifier, citPropertiesSupplier.get());
+                            globalProperties.load(pack./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/(), globalPropsId, citPropertiesSupplier.get());
                     } catch (FileNotFoundException ignored) {
                     } catch (Exception e) {
-                        CITResewn.logErrorLoading("Errored while loading global properties: " + identifier + " from " + pack./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/());
+                        CITResewn.logErrorLoading("Errored while loading global properties: " + globalPropsId + " from " + pack./*? <1.21 {*//*getName*//*?} else {*/packId/*?}*/());
                         e.printStackTrace();
                     }
                 }

@@ -1,14 +1,12 @@
 package shcm.shsupercm.fabric.citresewn.defaults;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeArmor;
 import shcm.shsupercm.fabric.citresewn.defaults.cit.types.TypeElytra;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -16,7 +14,7 @@ import java.util.function.Function;
 /**
  * Holder for utility compatibility methods for use in other mods.
  */
-public abstract class CITResewnDefaultsCompatAPI implements ClientModInitializer {
+public abstract class CITResewnDefaultsCompatAPI {
     /**
      * Entrypoint for client initialization that's only called with CIT Resewn: Defaults present.
      */
@@ -24,8 +22,11 @@ public abstract class CITResewnDefaultsCompatAPI implements ClientModInitializer
 
     @Entrypoint(Entrypoint.CLIENT)
     public static void initAll() {
-        for (EntrypointContainer<CITResewnDefaultsCompatAPI> compat : FabricLoader.getInstance().getEntrypointContainers(CITResewnDefaultsCompatAPI.ENTRYPOINT, CITResewnDefaultsCompatAPI.class))
-            compat.getEntrypoint().onInitializeClient();
+        for (CITResewnDefaultsCompatAPI compat : Platform.services(CITResewnDefaultsCompatAPI.class))
+            compat.onInitializeClient();
+    }
+
+    public void onInitializeClient() {
     }
 
     /**

@@ -1,0 +1,56 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+issueTrackerURL="https://github.com/EthanVisagie/CIT-Resewn-Continuation/issues"
+
+[[mods]]
+modId="citresewn"
+version="${mod_version}"
+displayName="CIT Resewn Continuation"
+displayURL="https://github.com/EthanVisagie/CIT-Resewn-Continuation"
+logoFile="assets/citresewn/logo.png"
+authors="SHsuperCM"
+description='''Unofficial continuation of CIT Resewn for modern NeoForge versions.'''
+
+[[mods]]
+modId="citresewn_defaults"
+version="${mod_version}"
+displayName="CIT Resewn Continuation: Defaults"
+displayURL="https://github.com/EthanVisagie/CIT-Resewn-Continuation"
+logoFile="assets/citresewn-defaults/logo.png"
+authors="SHsuperCM"
+description='''Default CIT types and conditions bundled with CIT Resewn Continuation.'''
+
+[[mixins]]
+config="citresewn.mixins.json"
+
+[[mixins]]
+config="citresewn-defaults.mixins.json"
+
+[[dependencies.citresewn]]
+modId="neoforge"
+type="required"
+versionRange="[21.10,)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.citresewn]]
+modId="minecraft"
+type="required"
+versionRange="[${mod_target_mc},)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.citresewn]]
+modId="cloth_config"
+type="optional"
+versionRange="[20,)"
+ordering="AFTER"
+side="CLIENT"
+
+[[dependencies.citresewn_defaults]]
+modId="citresewn"
+type="required"
+versionRange="[${mod_version},)"
+ordering="AFTER"
+side="CLIENT"

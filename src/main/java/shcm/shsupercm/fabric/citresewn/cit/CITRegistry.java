@@ -1,7 +1,5 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.minecraft.resources.Identifier;
 import shcm.shsupercm.fabric.citresewn.api.CITConditionContainer;
 import shcm.shsupercm.fabric.citresewn.api.CITTypeContainer;
@@ -10,6 +8,7 @@ import shcm.shsupercm.fabric.citresewn.pack.PackParser;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyGroup;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 
 import java.util.*;
 
@@ -58,25 +57,15 @@ public final class CITRegistry { private CITRegistry(){}
         for (CITConditionContainer<?> container : BuiltinEntrypoints.conditionContainers())
             registerConditionContainer("citresewn", container);
 
-        for (var entrypointContainer : FabricLoader.getInstance().getEntrypointContainers(CITConditionContainer.ENTRYPOINT, CITConditionContainer.class)) {
-            String namespace = entrypointContainer.getProvider().getMetadata().getId();
-            if (namespace.equals("citresewn-defaults"))
-                namespace = "citresewn";
-
-            registerConditionContainer(namespace, entrypointContainer.getEntrypoint());
-        }
+        for (CITConditionContainer<?> container : Platform.services(CITConditionContainer.class))
+            registerConditionContainer("citresewn", container);
 
         info("Registering CIT Types");
         for (CITTypeContainer<?> container : BuiltinEntrypoints.typeContainers())
             registerTypeContainer("citresewn", container);
 
-        for (var entrypointContainer : FabricLoader.getInstance().getEntrypointContainers(CITTypeContainer.ENTRYPOINT, CITTypeContainer.class)) {
-            String namespace = entrypointContainer.getProvider().getMetadata().getId();
-            if (namespace.equals("citresewn-defaults"))
-                namespace = "citresewn";
-
-            registerTypeContainer(namespace, entrypointContainer.getEntrypoint());
-        }
+        for (CITTypeContainer<?> container : Platform.services(CITTypeContainer.class))
+            registerTypeContainer("citresewn", container);
     }
 
     private static void registerConditionContainer(String namespace, CITConditionContainer<?> container) {

@@ -26,15 +26,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.client.renderer.item.ClientItem;
-import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+import net.minecraft.client.renderer.item.BlockModelWrapper;
 import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.client.resources.model.cuboid.CuboidModel;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.model.UnbakedModelParser;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -128,10 +128,10 @@ public class TypeItem extends CITType {
     public Map<Identifier, ClientItem> createItemAssets() {
         Map<Identifier, ClientItem> itemAssets = new LinkedHashMap<>();
         if (this.replacementModelId != null && this.generatedItemModelId != null)
-            itemAssets.put(this.generatedItemModelId, new ClientItem(new CuboidItemModelWrapper.Unbaked(this.replacementModelId, Optional.empty(), List.of()), ClientItem.Properties.DEFAULT));
+            itemAssets.put(this.generatedItemModelId, new ClientItem(new BlockModelWrapper.Unbaked(this.replacementModelId, List.of()), ClientItem.Properties.DEFAULT));
 
         for (Identifier generatedTextureModelId : this.generatedTextureModelIds.values())
-            itemAssets.put(generatedTextureModelId, new ClientItem(new CuboidItemModelWrapper.Unbaked(generatedTextureModelId, Optional.empty(), List.of()), ClientItem.Properties.DEFAULT));
+            itemAssets.put(generatedTextureModelId, new ClientItem(new BlockModelWrapper.Unbaked(generatedTextureModelId, List.of()), ClientItem.Properties.DEFAULT));
 
         return itemAssets;
     }
@@ -145,7 +145,7 @@ public class TypeItem extends CITType {
                 if (resource.isPresent())
                     try (var inputStream = resource.get().open()) {
                         String json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                        models.put(this.replacementModelId, CuboidModel.fromStream(new StringReader(applyReplacementTexture(json))));
+                        models.put(this.replacementModelId, UnbakedModelParser.parse(new StringReader(applyReplacementTexture(json))));
                     }
             } catch (IOException e) {
                 CITResewn.logErrorLoading("Errored while loading CIT item model " + this.replacementModelResourceId + ": " + e.getMessage());
@@ -159,7 +159,7 @@ public class TypeItem extends CITType {
                     + "\"parent\":\"" + entry.getKey() + "\","
                     + "\"textures\":{\"layer0\":\"" + this.replacementTextureId + "\"}"
                     + "}";
-            models.put(entry.getValue(), CuboidModel.fromStream(new StringReader(json)));
+            models.put(entry.getValue(), UnbakedModelParser.parse(new StringReader(json)));
         }
 
         return models;

@@ -24,7 +24,7 @@ public class AtlasLoaderMixin {
 
     @Inject(method = "load", at = @At("RETURN"), cancellable = true)
     private static void citresewn$atlasSource(ResourceManager resourceManager, Identifier id, CallbackInfoReturnable<SpriteSourceList> cir) {
-        if (id.getPath().equals("blocks") && id.getNamespace().equals("minecraft")) {
+        if (id.getNamespace().equals("minecraft") && (id.getPath().equals("blocks") || id.getPath().equals("items"))) {
             ((AtlasLoaderMixin) (Object) cir.getReturnValue()).sources.add(new SpriteSource() {
                 @Override
                 public void run(ResourceManager resourceManager, Output regions) {

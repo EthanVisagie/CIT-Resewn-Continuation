@@ -8,19 +8,19 @@ import net.minecraft.resources.Identifier;
 public class ResewnItemModelIdentifier {
     private static final String MARKER = "citresewn_model_path";
 
-    public static Identifier pack(Identifier identifier) {
-        return Identifier.fromNamespaceAndPath(MARKER, identifier.getNamespace() + '/' + identifier.getPath());
+    public static Identifier pack(Identifier id) {
+        return Identifier.fromNamespaceAndPath(MARKER, id.getNamespace() + '/' + id.getPath());
     }
 
-    public static boolean marked(Identifier identifier) {
-        return identifier.getNamespace().equals(MARKER);
+    public static boolean marked(Identifier id) {
+        return id.getNamespace().equals(MARKER);
     }
 
-    public static Identifier unpack(Identifier identifier) {
-        if (!marked(identifier))
-            throw new IllegalArgumentException("The given identifier is not a packed resewn model");
+    public static Identifier unpack(Identifier id) {
+        if (!marked(id))
+            throw new IllegalArgumentException("The given Identifier is not a packed resewn model");
 
-        int split = identifier.getPath().indexOf('/');
-        return Identifier.fromNamespaceAndPath(identifier.getPath().substring(0, split), identifier.getPath().substring(split + 1));
+        int split = id.getPath().indexOf('/');
+        return Identifier.fromNamespaceAndPath(id.getPath().substring(0, split), id.getPath().substring(split + 1));
     }
 }

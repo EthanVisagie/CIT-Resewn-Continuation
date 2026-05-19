@@ -14,14 +14,14 @@ import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
  */
 public abstract class IdentifierCondition extends CITCondition {
     /**
-     * Parsed identifier.
+     * Parsed Identifier.
      */
     protected Identifier value;
 
     /**
-	 * Converts the given context to an identifier to compare the parsed value to.
+	 * Converts the given context to an Identifier to compare the parsed value to.
      * @param context context to retrieve the compared value from
-	 * @return the identifier value associated with the given context
+	 * @return the Identifier value associated with the given context
      */
     protected Identifier getValue(CITContext context) {
         throw new AssertionError("Not implemented by this condition");

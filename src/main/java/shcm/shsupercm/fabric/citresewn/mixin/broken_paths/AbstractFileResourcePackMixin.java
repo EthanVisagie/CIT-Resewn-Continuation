@@ -27,7 +27,7 @@ public abstract class AbstractFileResourcePackMixin implements PackResources {
     public <T extends PackMetadataSection> void citresewn$brokenpaths$parseMetadata(MetadataSectionType<T> metaReader, CallbackInfoReturnable<T> cir) {
         if (cir.getReturnValue() != null) try {
             for (String namespace : getNamespaces(PackType.CLIENT_RESOURCES)) {
-                listResources(PackType.CLIENT_RESOURCES, namespace, "", (identifier, inputStreamInputSupplier) -> {
+                listResources(PackType.CLIENT_RESOURCES, namespace, "", (Identifier, inputStreamInputSupplier) -> {
                 });
             }
         } catch (IdentifierException e) {

@@ -3,11 +3,12 @@ package shcm.shsupercm.fabric.citresewn.config;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
+
 import java.util.function.Function;
 
 /**
@@ -48,16 +49,14 @@ public class CITResewnConfigScreenFactory {
                 .setDefaultValue(defaultConfig.enabled)
                 .build());
 
-        if (FabricLoader.getInstance().isModLoaded("citresewn-defaults")) {
+        if (Platform.isModLoaded("citresewn-defaults")) {
             class CurrentScreen { boolean prevToggle = false; } final CurrentScreen currentScreen = new CurrentScreen();
             category.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.citresewn-defaults.title"), false)
                     .setTooltip(Component.translatable("config.citresewn-defaults.tooltip"))
 
                     .setYesNoTextSupplier((b) -> {
                         if (b != currentScreen.prevToggle) {
-                            Function<Screen, Screen> defaultsFactory = (Function<Screen, Screen>) FabricLoader.getInstance().getEntrypoints(DEFAULTS_CONFIG_ENTRYPOINT, Function.class).stream().findAny().orElse(null);
-                            if (defaultsFactory == null)
-                                defaultsFactory = getDefaultsFactoryReflectively();
+                            Function<Screen, Screen> defaultsFactory = getDefaultsFactoryReflectively();
                             if (defaultsFactory != null)
                                 Minecraft.getInstance().setScreenAndShow((Screen) defaultsFactory.apply(create(parent)));
 

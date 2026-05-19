@@ -2,9 +2,9 @@ package shcm.shsupercm.fabric.citresewn.config;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
-import net.fabricmc.loader.api.FabricLoader;
 import org.apache.commons.io.IOUtils;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 
 import java.io.*;
 
@@ -38,7 +38,7 @@ public class CITResewnConfig {
     /**
      * CIT Resewn's config storage file.
      */
-    private static final File FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "citresewn.json");
+    private static final File FILE = new File(Platform.getConfigDir().toFile(), "citresewn.json");
 
     /**
      * Active instance of the current config.

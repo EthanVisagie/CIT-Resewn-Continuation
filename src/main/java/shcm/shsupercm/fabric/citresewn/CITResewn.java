@@ -1,8 +1,10 @@
 package shcm.shsupercm.fabric.citresewn;
 
 import io.shcm.shsupercm.fabric.fletchingtable.api.Entrypoint;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import shcm.shsupercm.fabric.citresewn.config.CITResewnConfig;
@@ -11,17 +13,16 @@ import shcm.shsupercm.fabric.citresewn.cit.CITRegistry;
 /**
  * Main initializer for CIT Resewn. Contains various internal utilities(just logging for now).
  */
-public class CITResewn implements ClientModInitializer {
+@Mod(value = "citresewn", dist = Dist.CLIENT)
+public class CITResewn {
     public static final Logger LOG = LogManager.getLogger("CITResewn");
     @Entrypoint(Entrypoint.CLIENT)
-    public static final CITResewn INSTANCE = new CITResewn();
+    public static CITResewn INSTANCE;
 
-    @Override
-    public void onInitializeClient() {
+    public CITResewn(IEventBus modBus) {
+        INSTANCE = this;
         CITRegistry.registerAll();
-
-        if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v2"))
-            CITResewnCommand.register();
+        NeoForge.EVENT_BUS.addListener(CITResewnCommand::register);
     }
 
     /**

@@ -21,3 +21,4 @@ build
 eclipse
 run
 srcOld
+hs_err_pid*.log

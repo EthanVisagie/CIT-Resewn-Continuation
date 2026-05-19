@@ -8,8 +8,8 @@ import net.minecraft.resources.Identifier;
 public class PropertiesGroupAdapter extends PropertyGroup {
     public static final String EXTENSION = ".properties";
 
-    protected PropertiesGroupAdapter(String packName, Identifier identifier) {
-        super(packName, identifier);
+    protected PropertiesGroupAdapter(String packName, Identifier Identifier) {
+        super(packName, Identifier);
     }
 
     @Override
@@ -18,7 +18,7 @@ public class PropertiesGroupAdapter extends PropertyGroup {
     }
 
     @Override
-    public PropertyGroup load(String packName, Identifier identifier, InputStream is) throws IOException, IdentifierException {
+    public PropertyGroup load(String packName, Identifier Identifier, InputStream is) throws IOException, IdentifierException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             String line;
             int linePos = 0, multilineSkip = 0;
@@ -92,7 +92,7 @@ public class PropertiesGroupAdapter extends PropertyGroup {
 
                 int pos = linePos - multilineSkip;
                 multilineSkip = 0;
-                this.put(pos, packName, identifier, key, keyMetadata, PropertySeparator.EQUALS, builder.toString());
+                this.put(pos, packName, Identifier, key, keyMetadata, PropertySeparator.EQUALS, builder.toString());
             }
         }
         return this;

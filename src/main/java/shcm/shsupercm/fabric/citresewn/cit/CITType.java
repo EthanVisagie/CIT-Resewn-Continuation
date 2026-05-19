@@ -42,7 +42,7 @@ public abstract class CITType {
      * some point!
      * \\\\\                  /////
      *
-     * Takes a defined path and resolves it to an identifier pointing to the resourcepack's path of the specified extension(returns null if no path can be resolved).<br>
+     * Takes a defined path and resolves it to an Identifier pointing to the resourcepack's path of the specified extension(returns null if no path can be resolved).<br>
      * If definedPath is null, will try to resolve a relative file with the same name as the rootIdentifier with the extension, otherwise: <br>
      * definedPath will be formatted to replace "\\" with "/" the extension will be appended if not there already. <br>
      * It will first try using definedPath as an absolute path, if it cant resolve(or definedPath starts with ./), definedPath will be considered relative. <br>

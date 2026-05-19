@@ -3,26 +3,25 @@ package shcm.shsupercm.fabric.citresewn;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import shcm.shsupercm.fabric.citresewn.cit.*;
 import shcm.shsupercm.fabric.citresewn.config.CITResewnConfig;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyKey;
 import shcm.shsupercm.fabric.citresewn.pack.format.PropertyValue;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
 /**
  * Logic for the /citresewn client command. Only enabled when Fabric API is present.<br>
@@ -42,35 +41,34 @@ public class CITResewnCommand {
     /**
      * Registers all of CIT Resewn's commands.
      */
-    public static void register() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(
-                ClientCommands.literal("citresewn").executes(context -> {
-                    context.getSource().sendFeedback(Component.literal("CIT Resewn v" + FabricLoader.getInstance().getModContainer("citresewn").orElseThrow().getMetadata().getVersion() + ":"));
-                    context.getSource().sendFeedback(Component.literal("  Registered: " + CITRegistry.TYPES.values().stream().distinct().count() + " types and " + CITRegistry.CONDITIONS.values().stream().distinct().count() + " conditions"));
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void register(RegisterClientCommandsEvent event) {
+        event.getDispatcher().register((LiteralArgumentBuilder) LiteralArgumentBuilder.literal("citresewn").executes(context -> {
+                    feedback(Component.literal("CIT Resewn v" + Platform.getModVersion("citresewn") + ":"));
+                    feedback(Component.literal("  Registered: " + CITRegistry.TYPES.values().stream().distinct().count() + " types and " + CITRegistry.CONDITIONS.values().stream().distinct().count() + " conditions"));
 
                     final boolean active = CITResewnConfig.INSTANCE.enabled && ActiveCITs.isActive();
-                    context.getSource().sendFeedback(Component.literal("  Active: " + (active ? "yes" : ("no, " + (CITResewnConfig.INSTANCE.enabled ? "no cit packs loaded" : "disabled in config")))));
+                    feedback(Component.literal("  Active: " + (active ? "yes" : ("no, " + (CITResewnConfig.INSTANCE.enabled ? "no cit packs loaded" : "disabled in config")))));
                     if (active) {
-                        context.getSource().sendFeedback(Component.literal("   Loaded: " + ActiveCITs.getActive().cits.values().stream().mapToLong(Collection::size).sum() + " CITs from " + ActiveCITs.getActive().cits.values().stream().flatMap(Collection::stream).map(cit -> cit.packName).distinct().count() + " resourcepacks"));
+                        feedback(Component.literal("   Loaded: " + ActiveCITs.getActive().cits.values().stream().mapToLong(Collection::size).sum() + " CITs from " + ActiveCITs.getActive().cits.values().stream().flatMap(Collection::stream).map(cit -> cit.packName).distinct().count() + " resourcepacks"));
                     }
-                    context.getSource().sendFeedback(Component.literal(""));
+                    feedback(Component.literal(""));
 
                     return 1;
                 })
-                .then(literal("config")
+                .then(LiteralArgumentBuilder.literal("config")
                         .executes(context -> { //citresewn config
                             openConfig = true;
 
                             return 1;
                         }))
-                .then(literal("analyze")
-                        .then(literal("pack")
-                                .then(argument("pack", new LoadedCITPackArgument())
+                .then(LiteralArgumentBuilder.literal("analyze")
+                        .then(LiteralArgumentBuilder.literal("pack")
+                                .then(RequiredArgumentBuilder.argument("pack", new LoadedCITPackArgument())
                                         .executes(context -> { //citresewn analyze <pack>
                                             final String pack = context.getArgument("pack", String.class);
                                             if (ActiveCITs.isActive()) {
-                                                context.getSource().sendFeedback(Component.literal("Analyzed CIT data of \"" + pack + "\u00a7r\":"));
+                                                feedback(Component.literal("Analyzed CIT data of \"" + pack + "\u00a7r\":"));
 
                                                 List<Component> builder = new ArrayList<>();
 
@@ -79,9 +77,9 @@ public class CITResewnCommand {
                                                         if (value.packName().equals(pack))
                                                             builder.add(Component.literal("  " + entry.getKey().toString() + (value.keyMetadata() == null ? "" : "." + value.keyMetadata()) + " = " + value.value()));
                                                 if (!builder.isEmpty()) {
-                                                    context.getSource().sendFeedback(Component.literal(" Global Properties:"));
+                                                    feedback(Component.literal(" Global Properties:"));
                                                     for (Component text : builder)
-                                                        context.getSource().sendFeedback(text);
+                                                        feedback(text);
 
                                                     builder.clear();
                                                 }
@@ -93,9 +91,9 @@ public class CITResewnCommand {
                                                             builder.add(Component.literal("  " + CITRegistry.idOfType(entry.getKey()).toString() + " = " + count));
                                                     }
                                                 if (!builder.isEmpty()) {
-                                                    context.getSource().sendFeedback(Component.literal(" Types:"));
+                                                    feedback(Component.literal(" Types:"));
                                                     for (Component text : builder)
-                                                        context.getSource().sendFeedback(text);
+                                                        feedback(text);
 
                                                     builder.clear();
                                                 }
@@ -106,9 +104,9 @@ public class CITResewnCommand {
                                                         .flatMap(cit -> Arrays.stream(cit.conditions))
                                                         .toList();
                                                 if (!conditions.isEmpty())
-                                                    context.getSource().sendFeedback(Component.literal(" Utilizing " + conditions.size() + " conditions(" + conditions.stream().map(Object::getClass).distinct().count() + " unique condition types)"));
+                                                    feedback(Component.literal(" Utilizing " + conditions.size() + " conditions(" + conditions.stream().map(Object::getClass).distinct().count() + " unique condition types)"));
                                             } else
-                                                context.getSource().sendFeedback(Component.literal("Not active"));
+                                                feedback(Component.literal("Not active"));
 
                                             return 1;
                                         })
@@ -116,7 +114,12 @@ public class CITResewnCommand {
                         )
                   )
             );
-        });
+    }
+
+    private static void feedback(Component message) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.gui != null)
+            minecraft.gui.getChat().addMessage(message);
     }
 
     /**

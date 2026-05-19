@@ -1,11 +1,10 @@
 package shcm.shsupercm.fabric.citresewn.config;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import shcm.shsupercm.fabric.citresewn.CITResewn;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,8 +34,7 @@ public class CITResewnMixinConfiguration implements IMixinConfigPlugin {
 
         this.broken_paths = launchConfig.broken_paths;
 
-        for (ModContainer mod : FabricLoader.getInstance().getAllMods())
-            mods.add(mod.getMetadata().getId().replace('-', '_'));
+        mods.addAll(Platform.getLoadedModIds());
     }
 
     @Override

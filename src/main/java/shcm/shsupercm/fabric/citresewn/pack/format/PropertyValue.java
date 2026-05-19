@@ -8,7 +8,7 @@ import net.minecraft.resources.Identifier;
  * @param value string representation of the value to be parsed by the group's user
  * @param separator implementation specific connection between the key and the value
  * @param position implementation specific interpretation of the value's position in the group, has no effect on internal order
- * @param propertiesIdentifier the value's property group location identifier
+ * @param propertiesIdentifier the value's property group location Identifier
  * @param packName the value's resourcepack file name
  */
 public record PropertyValue(String keyMetadata,

@@ -1,6 +1,5 @@
 package shcm.shsupercm.fabric.citresewn.cit;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import shcm.shsupercm.fabric.citresewn.api.CITDisposable;
@@ -10,6 +9,7 @@ import shcm.shsupercm.fabric.citresewn.config.CITResewnConfig;
 import shcm.shsupercm.fabric.citresewn.pack.GlobalProperties;
 import shcm.shsupercm.fabric.citresewn.pack.PackParser;
 import shcm.shsupercm.fabric.citresewn.mixin.ModelLoaderMixin;
+import shcm.shsupercm.fabric.citresewn.platform.Platform;
 
 import java.util.*;
 
@@ -63,7 +63,7 @@ public class ActiveCITs { private ActiveCITs() {}
 	 */
     public static void load(ResourceManager resourceManager, ProfilerFiller profiler) {
         profiler.push("citresewn:disposing");
-        for (CITDisposable disposable : FabricLoader.getInstance().getEntrypoints(CITDisposable.ENTRYPOINT, CITDisposable.class))
+        for (CITDisposable disposable : Platform.services(CITDisposable.class))
             disposable.dispose();
 
         for (CITTypeContainer<? extends CITType> typeContainer : CITRegistry.TYPES.values())

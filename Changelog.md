@@ -1,3 +1,15 @@
+## 1.2.2-fork.5+1.21.11 NeoForge beta
+
+### Fixed
+
+- Ported the fork to Minecraft 1.21.10 and 1.21.11 on NeoForge.
+- Switched the build to Architectury Loom with `loom.platform=neoforge`.
+- Added NeoForge mod metadata and bundled defaults in the NeoForge jar.
+- Added early-load guards around NeoForge `ModList` access during mixin setup.
+- Updated 1.21.11 renderer, identifier, item-model, armor, elytra, and glint mappings.
+- Added CIT texture loading to the Minecraft 1.21.11 item atlas path.
+- Published the tested Minecraft 1.21.11 NeoForge build as beta.
+
 ## 1.2.2-fork.5+26.1.2
 
 ### Fixed
