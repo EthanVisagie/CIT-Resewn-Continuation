@@ -1,3 +1,10 @@
+## 1.2.2-fork.6+1.21.11 NeoForge beta
+
+### Fixed
+
+- Added `model.trident_throwing` support on 1.21.11 so trident CITs can use the correct throwing model variant while the item is being used.
+- Fixed generated item model selection to use the entity use-state for trident throwing overrides.
+
 ## 1.2.2-fork.5+1.21.11 NeoForge beta
 
 ### Fixed

@@ -32,6 +32,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.model.UnbakedModelParser;
@@ -47,6 +48,9 @@ public class TypeItem extends CITType {
     public Identifier generatedItemModelId;
     private Identifier replacementModelId;
     private Identifier replacementModelResourceId;
+    private final Map<String, Identifier> generatedSubItemModelIds = new LinkedHashMap<>();
+    private final Map<String, Identifier> replacementSubModelIds = new LinkedHashMap<>();
+    private final Map<String, Identifier> replacementSubModelResourceIds = new LinkedHashMap<>();
     private Identifier replacementTextureId;
     private final Map<String, Identifier> replacementTextures = new LinkedHashMap<>();
     private final Map<Identifier, Identifier> generatedTextureModelIds = new LinkedHashMap<>();
@@ -78,8 +82,24 @@ public class TypeItem extends CITType {
             }
 
         PropertyValue modelProp = properties.getLastWithoutMetadata("citresewn", "model");
-        if (modelProp != null && modelProp.keyMetadata() != null)
-            warn("Sub-item model overrides are not ported to 1.21.11 yet", modelProp, properties);
+        for (PropertyValue propertyValue : properties.get("citresewn", "model")) {
+            if (propertyValue.keyMetadata() == null)
+                continue;
+
+            String keyMetadata = propertyValue.keyMetadata();
+            if (!keyMetadata.equals("trident_throwing")) {
+                warn("Sub-item model override is not ported to 1.21.11 yet", propertyValue, properties);
+                continue;
+            }
+
+            Identifier resolvedModel = resolveAsset(properties.identifier, propertyValue, "models", ".json", resourceManager);
+            if (resolvedModel == null)
+                throw new CITParsingException("Could not resolve replacement model", properties, propertyValue.position());
+
+            this.replacementSubModelResourceIds.put(keyMetadata, resolvedModel);
+            this.replacementSubModelIds.put(keyMetadata, generatedReplacementSubModelId(properties.identifier, keyMetadata));
+            this.generatedSubItemModelIds.put(keyMetadata, generatedSubItemModelId(properties.identifier, keyMetadata));
+        }
 
         PropertyValue textureProp = properties.getLastWithoutMetadata("citresewn", "texture", "tile");
 
@@ -108,8 +128,10 @@ public class TypeItem extends CITType {
                 throw new CITParsingException("Could not resolve replacement model", properties, modelProp.position());
 
             this.replacementModelResourceId = resolvedModel;
-            this.replacementModelId = asModelId(resolvedModel);
             this.generatedItemModelId = generatedItemModelId(properties.identifier);
+            this.replacementModelId = this.replacementTextureId != null || !this.replacementTextures.isEmpty()
+                    ? generatedReplacementModelId(properties.identifier)
+                    : asModelId(resolvedModel);
         }
 
         if (this.replacementModelId == null && !properties.get("citresewn", "texture", "tile").isEmpty()) {
@@ -129,6 +151,12 @@ public class TypeItem extends CITType {
         Map<Identifier, ClientItem> itemAssets = new LinkedHashMap<>();
         if (this.replacementModelId != null && this.generatedItemModelId != null)
             itemAssets.put(this.generatedItemModelId, new ClientItem(new BlockModelWrapper.Unbaked(this.replacementModelId, List.of()), ClientItem.Properties.DEFAULT));
+
+        for (Map.Entry<String, Identifier> entry : this.generatedSubItemModelIds.entrySet()) {
+            Identifier replacementSubModelId = this.replacementSubModelIds.get(entry.getKey());
+            if (replacementSubModelId != null)
+                itemAssets.put(entry.getValue(), new ClientItem(new BlockModelWrapper.Unbaked(replacementSubModelId, List.of()), ClientItem.Properties.DEFAULT));
+        }
 
         for (Identifier generatedTextureModelId : this.generatedTextureModelIds.values())
             itemAssets.put(generatedTextureModelId, new ClientItem(new BlockModelWrapper.Unbaked(generatedTextureModelId, List.of()), ClientItem.Properties.DEFAULT));
@@ -150,6 +178,23 @@ public class TypeItem extends CITType {
             } catch (IOException e) {
                 CITResewn.logErrorLoading("Errored while loading CIT item model " + this.replacementModelResourceId + ": " + e.getMessage());
             }
+
+        for (Map.Entry<String, Identifier> entry : this.replacementSubModelIds.entrySet()) {
+            Identifier replacementSubModelResourceId = this.replacementSubModelResourceIds.get(entry.getKey());
+            if (replacementSubModelResourceId == null)
+                continue;
+
+            try {
+                var resource = resourceManager.getResource(replacementSubModelResourceId);
+                if (resource.isPresent())
+                    try (var inputStream = resource.get().open()) {
+                        String json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                        models.put(entry.getValue(), UnbakedModelParser.parse(new StringReader(applyReplacementTexture(json))));
+                    }
+            } catch (IOException e) {
+                CITResewn.logErrorLoading("Errored while loading CIT item model " + replacementSubModelResourceId + ": " + e.getMessage());
+            }
+        }
 
         if (this.replacementTextureId == null)
             return models;
@@ -189,7 +234,13 @@ public class TypeItem extends CITType {
         return this.warnedTextureOnly;
     }
 
-    public Identifier getGeneratedItemModelId(ItemStack stack) {
+    public Identifier getGeneratedItemModelId(ItemStack stack, LivingEntity entity) {
+        if (entity != null && entity.isUsingItem() && ItemStack.matches(entity.getUseItem(), stack)) {
+            Identifier generatedSubItemModelId = this.generatedSubItemModelIds.get("trident_throwing");
+            if (generatedSubItemModelId != null)
+                return generatedSubItemModelId;
+        }
+
         if (this.generatedItemModelId != null)
             return this.generatedItemModelId;
 
@@ -225,11 +276,32 @@ public class TypeItem extends CITType {
         return Identifier.fromNamespaceAndPath("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path);
     }
 
+    private static Identifier generatedSubItemModelId(Identifier propertiesIdentifier, String keyMetadata) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.fromNamespaceAndPath("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + keyMetadata);
+    }
+
     private static Identifier generatedTextureModelId(Identifier propertiesIdentifier, Identifier itemModelId) {
         String path = propertiesIdentifier.getPath();
         if (path.endsWith(".properties"))
             path = path.substring(0, path.length() - ".properties".length());
         return Identifier.fromNamespaceAndPath("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + itemModelId.getNamespace() + "/" + itemModelId.getPath());
+    }
+
+    private static Identifier generatedReplacementModelId(Identifier propertiesIdentifier) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.fromNamespaceAndPath("citresewn", "generated_model/" + propertiesIdentifier.getNamespace() + "/" + path);
+    }
+
+    private static Identifier generatedReplacementSubModelId(Identifier propertiesIdentifier, String keyMetadata) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.fromNamespaceAndPath("citresewn", "generated_model/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + keyMetadata);
     }
 
     private static Identifier itemModelId(Item item) {
