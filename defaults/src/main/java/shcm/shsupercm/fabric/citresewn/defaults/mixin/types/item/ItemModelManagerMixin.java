@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ItemOwner;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -96,7 +97,8 @@ public abstract class ItemModelManagerMixin {
         }
 
         if (cit != null) {
-            Identifier generatedId = cit.type.getGeneratedItemModelId(stack);
+            LivingEntity entity = heldItemContext == null ? null : heldItemContext.asLivingEntity();
+            Identifier generatedId = cit.type.getGeneratedItemModelId(stack, entity);
             if (generatedId != null)
                 return generatedId;
         }

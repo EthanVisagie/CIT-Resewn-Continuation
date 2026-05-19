@@ -1,3 +1,9 @@
+## 1.2.2-fork.7+26.1.2
+
+### Fixed
+
+- Added support for `model.trident_throwing` item CIT overrides so renamed tridents use the pack-provided throwing pose model while being charged.
+
 ## 1.2.2-fork.6+26.1.2
 
 ### Fixed
