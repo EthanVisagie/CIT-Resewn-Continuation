@@ -1,0 +1,68 @@
+name: Bug Report
+description: Something's broken, crashing, or not working as expected.
+labels: ["bug", "unverified"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Please fill in the details below so we can track it down quickly.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: |
+        What did you see, and what did you expect to see instead? Screenshots help if something looks wrong visually.
+      placeholder: I expected X, but Y happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: |
+        How can we trigger this ourselves? If a specific resource pack is involved, please link or attach it.
+      placeholder: |
+        1. Load resource pack X
+        2. Open inventory
+        3. Wrong texture appears
+    validations:
+      required: true
+  - type: input
+    id: logs
+    attributes:
+      label: Log file
+      description: |
+        Link the latest.log from when the issue occurred. Please don't paste logs directly — upload to mclo.gs or pastebin and link here.
+      placeholder: e.g. https://mclo.gs/XXXXXXX
+    validations:
+      required: true
+  - type: input
+    id: crash-report
+    attributes:
+      label: Crash report (if applicable)
+      description: |
+        If the game crashed and generated a crash-report file, link it here. This is in addition to the log file above.
+      placeholder: e.g. https://mclo.gs/XXXXXXX
+    validations:
+      required: false
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Mod loader
+      description: Which loader are you running the mod on?
+      options:
+        - Fabric
+        - NeoForge
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and couldn't find a duplicate
+          required: true
+        - label: I am using the latest version of CIT Resewn Continuation for my Minecraft version
+          required: true
+        - label: I've tried disabling Broken Paths and the issue still occurs (if applicable)
+          required: false
