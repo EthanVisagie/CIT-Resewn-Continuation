@@ -1,3 +1,10 @@
+## 1.2.2-fork.6+26.1.2
+
+### Fixed
+
+- Fixed model-backed item CITs with texture replacements sharing one generated model, which made rename textures overwrite each other between game launches.
+- Avoided creating default item stacks while loading texture-only item CITs, preventing `Components not bound yet` load failures on Minecraft 26.1.2.
+
 ## 1.2.2-fork.5+26.1.2
 
 ### Fixed

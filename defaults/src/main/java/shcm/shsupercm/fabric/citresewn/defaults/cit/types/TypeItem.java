@@ -108,8 +108,10 @@ public class TypeItem extends CITType {
                 throw new CITParsingException("Could not resolve replacement model", properties, modelProp.position());
 
             this.replacementModelResourceId = resolvedModel;
-            this.replacementModelId = asModelId(resolvedModel);
             this.generatedItemModelId = generatedItemModelId(properties.identifier);
+            this.replacementModelId = this.replacementTextureId != null || !this.replacementTextures.isEmpty()
+                    ? generatedReplacementModelId(properties.identifier)
+                    : asModelId(resolvedModel);
         }
 
         if (this.replacementModelId == null && !properties.get("citresewn", "texture", "tile").isEmpty()) {
@@ -232,11 +234,14 @@ public class TypeItem extends CITType {
         return Identifier.fromNamespaceAndPath("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + itemModelId.getNamespace() + "/" + itemModelId.getPath());
     }
 
-    private static Identifier itemModelId(Item item) {
-        Identifier itemModelId = item.getDefaultInstance().get(DataComponents.ITEM_MODEL);
-        if (itemModelId != null)
-            return itemModelId;
+    private static Identifier generatedReplacementModelId(Identifier propertiesIdentifier) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.fromNamespaceAndPath("citresewn", "generated_model/" + propertiesIdentifier.getNamespace() + "/" + path);
+    }
 
+    private static Identifier itemModelId(Item item) {
         Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
         return Identifier.fromNamespaceAndPath(itemId.getNamespace(), "item/" + itemId.getPath());
     }
