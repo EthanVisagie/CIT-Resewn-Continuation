@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: CIT Resewn Wiki
+    url: https://citresewn.shcm.io/
+    about: Check the wiki for setup guides and common questions before opening an issue.
