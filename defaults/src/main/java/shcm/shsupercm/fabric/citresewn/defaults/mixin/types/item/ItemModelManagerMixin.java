@@ -7,6 +7,7 @@ import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.HeldItemContext;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
@@ -95,7 +96,8 @@ public abstract class ItemModelManagerMixin {
         }
 
         if (cit != null) {
-            Identifier generatedId = cit.type.getGeneratedItemModelId(stack);
+            LivingEntity entity = heldItemContext == null ? null : heldItemContext.getEntity();
+            Identifier generatedId = cit.type.getGeneratedItemModelId(stack, entity);
             if (generatedId != null)
                 return generatedId;
         }

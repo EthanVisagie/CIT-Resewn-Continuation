@@ -9,6 +9,11 @@
 - Added a turtle shell armor compatibility alias for legacy `texture.turtle_layer_1=...` rules on modern `turtle_scute` equipment assets.
 - Preserved sorted elytra CIT selection order so worn elytra variants respect weight/path priority.
 - Updated the Fabric API dependency id from `fabric` to `fabric-api`.
+- Added support for `model.trident_throwing` item CIT overrides so renamed tridents can use dedicated throwing models.
+- Added 1.21.11 support for sub-item model overrides used by bows, crossbows, and shields (`bow_pulling_*`, `crossbow_pulling_*`, `crossbow_arrow`, `crossbow_firework`, `shield_blocking`).
+- Added compatibility mapping for `model.cit/...` alias-style submodel keys to the canonical state keys above.
+- Normalized modern `item_model` component ids (for example `minecraft:diamond_axe`) to model parent paths (`minecraft:item/diamond_axe`) for texture-only item CIT generation.
+- Hardened item model decode/loading so malformed CIT model JSON is logged and skipped instead of aborting the entire model reload path.
 
 ## 1.2.2-fork.3+1.21.11
 

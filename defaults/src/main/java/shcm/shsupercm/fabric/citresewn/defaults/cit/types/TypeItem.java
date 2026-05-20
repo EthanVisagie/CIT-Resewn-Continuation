@@ -8,8 +8,13 @@ import net.minecraft.client.render.item.model.BasicItemModel;
 import net.minecraft.client.render.model.UnbakedModel;
 import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ChargedProjectilesComponent;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.BowItem;
+import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -32,6 +37,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.io.IOException;
@@ -46,10 +52,25 @@ public class TypeItem extends CITType {
     public Identifier generatedItemModelId;
     private Identifier replacementModelId;
     private Identifier replacementModelResourceId;
+    private final Map<String, Identifier> generatedSubItemModelIds = new LinkedHashMap<>();
+    private final Map<String, Identifier> replacementSubModelIds = new LinkedHashMap<>();
+    private final Map<String, Identifier> replacementSubModelResourceIds = new LinkedHashMap<>();
     private Identifier replacementTextureId;
     private final Map<String, Identifier> replacementTextures = new LinkedHashMap<>();
     private final Map<Identifier, Identifier> generatedTextureModelIds = new LinkedHashMap<>();
     private boolean warnedTextureOnly;
+    private static final Set<String> DIRECT_SUB_MODEL_KEYS = Set.of(
+            "trident_throwing",
+            "shield_blocking",
+            "bow_pulling_0",
+            "bow_pulling_1",
+            "bow_pulling_2",
+            "crossbow_pulling_0",
+            "crossbow_pulling_1",
+            "crossbow_pulling_2",
+            "crossbow_arrow",
+            "crossbow_firework"
+    );
 
     @Override
     public Set<PropertyKey> typeProperties() {
@@ -77,8 +98,24 @@ public class TypeItem extends CITType {
             }
 
         PropertyValue modelProp = properties.getLastWithoutMetadata("citresewn", "model");
-        if (modelProp != null && modelProp.keyMetadata() != null)
-            warn("Sub-item model overrides are not ported to 1.21.11 yet", modelProp, properties);
+        for (PropertyValue propertyValue : properties.get("citresewn", "model")) {
+            if (propertyValue.keyMetadata() == null)
+                continue;
+
+            String keyMetadata = resolveSubModelKey(propertyValue.keyMetadata());
+            if (keyMetadata == null) {
+                warn("Sub-item model override is not ported to 1.21.11 yet", propertyValue, properties);
+                continue;
+            }
+
+            Identifier resolvedModel = resolveAsset(properties.identifier, propertyValue, "models", ".json", resourceManager);
+            if (resolvedModel == null)
+                throw new CITParsingException("Could not resolve replacement model", properties, propertyValue.position());
+
+            this.replacementSubModelResourceIds.put(keyMetadata, resolvedModel);
+            this.replacementSubModelIds.put(keyMetadata, generatedReplacementSubModelId(properties.identifier, keyMetadata));
+            this.generatedSubItemModelIds.put(keyMetadata, generatedSubItemModelId(properties.identifier, keyMetadata));
+        }
 
         PropertyValue textureProp = properties.getLastWithoutMetadata("citresewn", "texture", "tile");
 
@@ -107,8 +144,10 @@ public class TypeItem extends CITType {
                 throw new CITParsingException("Could not resolve replacement model", properties, modelProp.position());
 
             this.replacementModelResourceId = resolvedModel;
-            this.replacementModelId = asModelId(resolvedModel);
             this.generatedItemModelId = generatedItemModelId(properties.identifier);
+            this.replacementModelId = this.replacementTextureId != null || !this.replacementTextures.isEmpty()
+                    ? generatedReplacementModelId(properties.identifier)
+                    : asModelId(resolvedModel);
         }
 
         if (this.replacementModelId == null && !properties.get("citresewn", "texture", "tile").isEmpty()) {
@@ -129,6 +168,12 @@ public class TypeItem extends CITType {
         if (this.replacementModelId != null && this.generatedItemModelId != null)
             itemAssets.put(this.generatedItemModelId, new ItemAsset(new BasicItemModel.Unbaked(this.replacementModelId, List.of()), ItemAsset.Properties.DEFAULT));
 
+        for (Map.Entry<String, Identifier> entry : this.generatedSubItemModelIds.entrySet()) {
+            Identifier replacementSubModelId = this.replacementSubModelIds.get(entry.getKey());
+            if (replacementSubModelId != null)
+                itemAssets.put(entry.getValue(), new ItemAsset(new BasicItemModel.Unbaked(replacementSubModelId, List.of()), ItemAsset.Properties.DEFAULT));
+        }
+
         for (Identifier generatedTextureModelId : this.generatedTextureModelIds.values())
             itemAssets.put(generatedTextureModelId, new ItemAsset(new BasicItemModel.Unbaked(generatedTextureModelId, List.of()), ItemAsset.Properties.DEFAULT));
 
@@ -144,11 +189,36 @@ public class TypeItem extends CITType {
                 if (resource.isPresent())
                     try (var inputStream = resource.get().getInputStream()) {
                         String json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                        models.put(this.replacementModelId, JsonUnbakedModel.deserialize(new StringReader(applyReplacementTexture(json))));
+                        try {
+                            models.put(this.replacementModelId, JsonUnbakedModel.deserialize(new StringReader(applyReplacementTexture(json))));
+                        } catch (Exception e) {
+                            CITResewn.logErrorLoading("Errored while decoding CIT item model " + this.replacementModelResourceId + ": " + e.getMessage());
+                        }
                     }
             } catch (IOException e) {
                 CITResewn.logErrorLoading("Errored while loading CIT item model " + this.replacementModelResourceId + ": " + e.getMessage());
             }
+
+        for (Map.Entry<String, Identifier> entry : this.replacementSubModelIds.entrySet()) {
+            Identifier replacementSubModelResourceId = this.replacementSubModelResourceIds.get(entry.getKey());
+            if (replacementSubModelResourceId == null)
+                continue;
+
+            try {
+                var resource = resourceManager.getResource(replacementSubModelResourceId);
+                if (resource.isPresent())
+                    try (var inputStream = resource.get().getInputStream()) {
+                        String json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                        try {
+                            models.put(entry.getValue(), JsonUnbakedModel.deserialize(new StringReader(applyReplacementTexture(json))));
+                        } catch (Exception e) {
+                            CITResewn.logErrorLoading("Errored while decoding CIT item model " + replacementSubModelResourceId + ": " + e.getMessage());
+                        }
+                    }
+            } catch (IOException e) {
+                CITResewn.logErrorLoading("Errored while loading CIT item model " + replacementSubModelResourceId + ": " + e.getMessage());
+            }
+        }
 
         if (this.replacementTextureId == null)
             return models;
@@ -158,7 +228,11 @@ public class TypeItem extends CITType {
                     + "\"parent\":\"" + entry.getKey() + "\","
                     + "\"textures\":{\"layer0\":\"" + this.replacementTextureId + "\"}"
                     + "}";
-            models.put(entry.getValue(), JsonUnbakedModel.deserialize(new StringReader(json)));
+            try {
+                models.put(entry.getValue(), JsonUnbakedModel.deserialize(new StringReader(json)));
+            } catch (Exception e) {
+                CITResewn.logErrorLoading("Errored while decoding generated CIT texture model " + entry.getValue() + ": " + e.getMessage());
+            }
         }
 
         return models;
@@ -188,11 +262,18 @@ public class TypeItem extends CITType {
         return this.warnedTextureOnly;
     }
 
-    public Identifier getGeneratedItemModelId(ItemStack stack) {
+    public Identifier getGeneratedItemModelId(ItemStack stack, LivingEntity entity) {
+        String subItemModelKey = resolveSubItemModelKey(stack, entity);
+        if (subItemModelKey != null) {
+            Identifier generatedSubItemModelId = this.generatedSubItemModelIds.get(subItemModelKey);
+            if (generatedSubItemModelId != null)
+                return generatedSubItemModelId;
+        }
+
         if (this.generatedItemModelId != null)
             return this.generatedItemModelId;
 
-        Identifier itemModelId = stack.get(DataComponentTypes.ITEM_MODEL);
+        Identifier itemModelId = normalizeItemModelId(stack.get(DataComponentTypes.ITEM_MODEL));
         if (itemModelId == null)
             itemModelId = itemModelId(stack.getItem());
 
@@ -224,6 +305,13 @@ public class TypeItem extends CITType {
         return Identifier.of("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path);
     }
 
+    private static Identifier generatedSubItemModelId(Identifier propertiesIdentifier, String keyMetadata) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.of("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + keyMetadata);
+    }
+
     private static Identifier generatedTextureModelId(Identifier propertiesIdentifier, Identifier itemModelId) {
         String path = propertiesIdentifier.getPath();
         if (path.endsWith(".properties"))
@@ -231,13 +319,138 @@ public class TypeItem extends CITType {
         return Identifier.of("citresewn", "generated/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + itemModelId.getNamespace() + "/" + itemModelId.getPath());
     }
 
+    private static Identifier generatedReplacementModelId(Identifier propertiesIdentifier) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.of("citresewn", "generated_model/" + propertiesIdentifier.getNamespace() + "/" + path);
+    }
+
+    private static Identifier generatedReplacementSubModelId(Identifier propertiesIdentifier, String keyMetadata) {
+        String path = propertiesIdentifier.getPath();
+        if (path.endsWith(".properties"))
+            path = path.substring(0, path.length() - ".properties".length());
+        return Identifier.of("citresewn", "generated_model/" + propertiesIdentifier.getNamespace() + "/" + path + "/" + keyMetadata);
+    }
+
     private static Identifier itemModelId(Item item) {
-        Identifier itemModelId = item.getDefaultStack().get(DataComponentTypes.ITEM_MODEL);
+        Identifier itemModelId = normalizeItemModelId(item.getDefaultStack().get(DataComponentTypes.ITEM_MODEL));
         if (itemModelId != null)
             return itemModelId;
 
         Identifier itemId = Registries.ITEM.getId(item);
         return Identifier.of(itemId.getNamespace(), "item/" + itemId.getPath());
+    }
+
+    private String resolveSubModelKey(String keyMetadata) {
+        if (DIRECT_SUB_MODEL_KEYS.contains(keyMetadata))
+            return keyMetadata;
+
+        String lower = keyMetadata.toLowerCase(Locale.ROOT);
+        if (!lower.startsWith("cit/"))
+            return null;
+
+        if (lower.endsWith("_throwing"))
+            return "trident_throwing";
+        if (lower.endsWith("_blocking"))
+            return "shield_blocking";
+        if (lower.endsWith("_arrow"))
+            return "crossbow_arrow";
+        if (lower.endsWith("_firework"))
+            return "crossbow_firework";
+        if (lower.endsWith("_pulling_0"))
+            return inferPullingKey(lower, "0");
+        if (lower.endsWith("_pulling_1"))
+            return inferPullingKey(lower, "1");
+        if (lower.endsWith("_pulling_2"))
+            return inferPullingKey(lower, "2");
+
+        return null;
+    }
+
+    private String inferPullingKey(String lowerMetadata, String stage) {
+        if (lowerMetadata.contains("crossbow"))
+            return "crossbow_pulling_" + stage;
+        if (lowerMetadata.contains("bow"))
+            return "bow_pulling_" + stage;
+
+        boolean targetsCrossbow = targetsItem(Items.CROSSBOW);
+        boolean targetsBow = targetsItem(Items.BOW);
+        if (targetsCrossbow && !targetsBow)
+            return "crossbow_pulling_" + stage;
+        if (targetsBow && !targetsCrossbow)
+            return "bow_pulling_" + stage;
+
+        return null;
+    }
+
+    private boolean targetsItem(Item item) {
+        for (Item target : this.items)
+            if (target == item)
+                return true;
+        return false;
+    }
+
+    private String resolveSubItemModelKey(ItemStack stack, LivingEntity entity) {
+        String passive = resolvePassiveSubItemModelKey(stack);
+        if (entity == null)
+            return passive;
+
+        if (!(entity.isUsingItem() && ItemStack.areItemsAndComponentsEqual(entity.getActiveItem(), stack)))
+            return passive;
+
+        if (stack.isOf(Items.TRIDENT))
+            return "trident_throwing";
+
+        if (stack.isOf(Items.SHIELD))
+            return "shield_blocking";
+
+        if (stack.isOf(Items.BOW)) {
+            int useTicks = stack.getMaxUseTime(entity) - entity.getItemUseTimeLeft();
+            float pull = BowItem.getPullProgress(useTicks);
+            if (pull >= 0.9f)
+                return "bow_pulling_2";
+            if (pull >= 0.65f)
+                return "bow_pulling_1";
+            if (pull > 0.0f)
+                return "bow_pulling_0";
+        } else if (stack.isOf(Items.CROSSBOW)) {
+            int pullTime = CrossbowItem.getPullTime(stack, entity);
+            if (pullTime > 0) {
+                int useTicks = stack.getMaxUseTime(entity) - entity.getItemUseTimeLeft();
+                float pull = (float) useTicks / (float) pullTime;
+                if (pull >= 1.0f)
+                    return "crossbow_pulling_2";
+                if (pull >= 0.58f)
+                    return "crossbow_pulling_1";
+                if (pull > 0.0f)
+                    return "crossbow_pulling_0";
+            }
+        }
+
+        return passive;
+    }
+
+    private String resolvePassiveSubItemModelKey(ItemStack stack) {
+        if (!stack.isOf(Items.CROSSBOW) || !CrossbowItem.isCharged(stack))
+            return null;
+
+        ChargedProjectilesComponent chargedProjectiles = stack.get(DataComponentTypes.CHARGED_PROJECTILES);
+        if (chargedProjectiles != null && chargedProjectiles.contains(Items.FIREWORK_ROCKET))
+            return "crossbow_firework";
+
+        return "crossbow_arrow";
+    }
+
+    private static Identifier normalizeItemModelId(Identifier itemModelId) {
+        if (itemModelId == null)
+            return null;
+
+        String path = itemModelId.getPath();
+        if (!path.contains("/"))
+            return Identifier.of(itemModelId.getNamespace(), "item/" + path);
+
+        return itemModelId;
     }
 
     public static class Container extends CITTypeContainer<TypeItem> {
